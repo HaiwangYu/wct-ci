@@ -13,6 +13,8 @@ jsonnet \
 --ext-str files_noise="dunevd10kt-1x6x6-3view-noise-spectra-v1.json.bz2" \
 --ext-str geo_planeid_labels="dunevd_3view" \
 --ext-str process_crm="full" \
+--ext-str input="depos.tar.bz2" \
+--ext-str output="test.tar.bz2" \
 --ext-code nticks=6000 \
 --ext-code DL=10 \
 --ext-code DT=10 \
@@ -23,6 +25,7 @@ jsonnet \
 --ext-code ncrm=112 \
 --ext-code use_dnnroi=false \
 --ext-code use_hydra=false \
+--ext-code wire_col_nsigma=3 \
 -J $cfg1 \
 -J $cfg2 \
 ${name}.jsonnet \
