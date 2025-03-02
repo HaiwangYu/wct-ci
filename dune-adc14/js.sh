@@ -1,5 +1,5 @@
 cfg1=/exp/dune/app/users/yuhw/larsoft/v10_04_03d01/localProducts_larsoft_v10_04_03_e26_prof/dunereco/v10_04_04d00/wire-cell-cfg
-cfg1=/cvmfs/dune.opensciencegrid.org/products/dune/dunereco/v10_04_03d01/wire-cell-cfg
+# cfg1=/cvmfs/dune.opensciencegrid.org/products/dune/dunereco/v10_04_03d01/wire-cell-cfg
 cfg2=/cvmfs/larsoft.opensciencegrid.org/products/wirecell/v0_29_5/Linux64bit+3.10-2.17-e26-prof/share/wirecell
 
 name=$2

@@ -1,0 +1,683 @@
+[
+   {
+      "data": {
+         "apps": [
+            "Pgrapher"
+         ],
+         "plugins": [
+            "WireCellSio",
+            "WireCellGen",
+            "WireCellSigProc",
+            "WireCellApps",
+            "WireCellPgraph",
+            "WireCellTbb",
+            "WireCellRoot",
+            "WireCellHio",
+            "WireCellPytorch"
+         ]
+      },
+      "type": "wire-cell"
+   },
+   {
+      "data": {
+         "inname": "depos.tar.bz2"
+      },
+      "type": "DepoFileSource"
+   },
+   {
+      "data": {
+         "generator": "default",
+         "seeds": [
+            0,
+            1,
+            2,
+            3,
+            4
+         ]
+      },
+      "type": "Random"
+   },
+   {
+      "data": {
+         "DL": 3.9999999999999998e-07,
+         "DT": 8.8000000000000015e-07,
+         "ar39activity": 1.6021764870000004e-34,
+         "density": 8669456899850258432,
+         "drift_speed": 0.001565,
+         "fluctuate": true,
+         "lifetime": 10400000,
+         "rng": "Random",
+         "time_offset": 0,
+         "xregions": [
+            {
+               "anode": -3578.3600000000001,
+               "cathode": -1.5875000000000909,
+               "response": -3487.8874999999998
+            },
+            {
+               "anode": -3683.1399999999999,
+               "cathode": -7259.9125000000004,
+               "response": -3773.6125000000002
+            },
+            {
+               "anode": 3683.1399999999999,
+               "cathode": 7259.9125000000004,
+               "response": 3773.6125000000002
+            },
+            {
+               "anode": 3578.3600000000001,
+               "cathode": 1.5875000000000909,
+               "response": 3487.8874999999998
+            }
+         ]
+      },
+      "type": "Drifter"
+   },
+   {
+      "data": {
+         "drifter": "Drifter"
+      },
+      "type": "DepoSetDrifter"
+   },
+   {
+      "data": {
+         "multiplicity": 1,
+         "tag_rules": [ ]
+      },
+      "name": "sn_mag_nf",
+      "type": "DepoSetFanout"
+   },
+   {
+      "data": {
+         "multiplicity": 1,
+         "tags": [
+            "orig0"
+         ]
+      },
+      "name": "sn_mag_nf",
+      "type": "FrameFanin"
+   },
+   {
+      "data": {
+         "filename": "protodune-wires-larsoft-v4.json.bz2"
+      },
+      "type": "WireSchemaFile"
+   },
+   {
+      "data": {
+         "faces": [
+            {
+               "anode": -3578.3600000000001,
+               "cathode": -1.5875000000000909,
+               "response": -3487.8874999999998
+            },
+            {
+               "anode": -3683.1399999999999,
+               "cathode": -7259.9125000000004,
+               "response": -3773.6125000000002
+            }
+         ],
+         "ident": 0,
+         "nimpacts": 10,
+         "wire_schema": "WireSchemaFile"
+      },
+      "name": "apa0",
+      "type": "AnodePlane"
+   },
+   {
+      "type": "FftwDFT"
+   },
+   {
+      "data": {
+         "filename": "dune-garfield-1d565.json.bz2"
+      },
+      "name": "field0",
+      "type": "FieldResponse"
+   },
+   {
+      "data": {
+         "filename": "",
+         "gain": 2.2430470818000003e-12,
+         "nticks": 6128,
+         "postgain": 1.1365000000000001,
+         "shaping": 2200,
+         "tick": 500
+      },
+      "type": "ColdElecResponse"
+   },
+   {
+      "data": {
+         "nticks": 6128,
+         "tick": 500,
+         "width": 1100000
+      },
+      "type": "RCResponse"
+   },
+   {
+      "data": {
+         "magnitude": 1,
+         "nticks": 6128,
+         "start": -10000,
+         "tick": 500,
+         "time_smear": 1000
+      },
+      "type": "ResponseSys"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "field_response": "FieldResponse:field0",
+         "long_padding": 1500000,
+         "long_responses": [
+            "RCResponse"
+         ],
+         "nticks": 6128,
+         "overall_short_padding": 100000,
+         "plane": 0,
+         "short_responses": [
+            "ColdElecResponse"
+         ],
+         "tick": 500
+      },
+      "name": "PIRfield0plane0",
+      "type": "PlaneImpactResponse"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "field_response": "FieldResponse:field0",
+         "long_padding": 1500000,
+         "long_responses": [
+            "RCResponse"
+         ],
+         "nticks": 6128,
+         "overall_short_padding": 100000,
+         "plane": 1,
+         "short_responses": [
+            "ColdElecResponse"
+         ],
+         "tick": 500
+      },
+      "name": "PIRfield0plane1",
+      "type": "PlaneImpactResponse"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "field_response": "FieldResponse:field0",
+         "long_padding": 1500000,
+         "long_responses": [
+            "RCResponse"
+         ],
+         "nticks": 6128,
+         "overall_short_padding": 100000,
+         "plane": 2,
+         "short_responses": [
+            "ColdElecResponse"
+         ],
+         "tick": 500
+      },
+      "name": "PIRfield0plane2",
+      "type": "PlaneImpactResponse"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "dft": "FftwDFT",
+         "drift_speed": 0.001565,
+         "first_frame_number": 100,
+         "fluctuate": true,
+         "nsigma": 3,
+         "pirs": [
+            "PlaneImpactResponse:PIRfield0plane0",
+            "PlaneImpactResponse:PIRfield0plane1",
+            "PlaneImpactResponse:PIRfield0plane2"
+         ],
+         "readout_time": 3064000,
+         "rng": "Random",
+         "start_time": -313897.76357827475,
+         "tick": 500
+      },
+      "name": "depotransform-apa0",
+      "type": "DepoTransform"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "fill": 0,
+         "nticks": 6000,
+         "tags": [ ],
+         "tbin": 128,
+         "toffset": 0
+      },
+      "name": "reframer-apa0",
+      "type": "Reframer"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "chanstat": "",
+         "dft": "FftwDFT",
+         "nsamples": 6000,
+         "period": 500,
+         "spectra_file": "protodune-noise-spectra-v1.json.bz2",
+         "wire_length_scale": 10
+      },
+      "name": "empericalnoise-apa0",
+      "type": "EmpiricalNoiseModel"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "model": "EmpiricalNoiseModel:empericalnoise-apa0",
+         "nsamples": 6000,
+         "replacement_percentage": 0.02,
+         "rng": "Random"
+      },
+      "name": "addnoise-empericalnoise-apa0",
+      "type": "AddNoise"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "baselines": [
+            1.0034e-06,
+            1.0034e-06,
+            5.0770000000000003e-07
+         ],
+         "frame_tag": "orig0",
+         "fullscale": [
+            1.9999999999999999e-07,
+            1.5999999999999999e-06
+         ],
+         "gain": 1,
+         "resolution": 12
+      },
+      "name": "digitizer-apa0",
+      "type": "Digitizer"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "frames": [
+            "orig0"
+         ],
+         "output_filename": "mag.root",
+         "root_file_mode": "UPDATE",
+         "trace_has_tag": false
+      },
+      "name": "magorig0",
+      "type": "MagnifySink"
+   },
+   {
+      "data": {
+         "max_freq": 0.001,
+         "tau": 1.4e-05
+      },
+      "name": "ROI_tight_lf",
+      "type": "LfFilter"
+   },
+   {
+      "data": {
+         "max_freq": 0.001,
+         "tau": 6.0000000000000002e-05
+      },
+      "name": "ROI_tighter_lf",
+      "type": "LfFilter"
+   },
+   {
+      "data": {
+         "max_freq": 0.001,
+         "tau": 1.9999999999999999e-06
+      },
+      "name": "ROI_loose_lf",
+      "type": "LfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 2,
+         "sigma": 0
+      },
+      "name": "Gaus_tight",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 2,
+         "sigma": 0.00012
+      },
+      "name": "Gaus_wide",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 3.7619400000000001,
+         "sigma": 0.00014878800000000001
+      },
+      "name": "Wiener_tight_U",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 4.3612500000000001,
+         "sigma": 0.00015965679999999999
+      },
+      "name": "Wiener_tight_V",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 3.35324,
+         "sigma": 0.00013622999999999999
+      },
+      "name": "Wiener_tight_W",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 5.0542899999999999,
+         "sigma": 0.00018676499999999998
+      },
+      "name": "Wiener_wide_U",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 5.7742199999999997,
+         "sigma": 0.00019359999999999999
+      },
+      "name": "Wiener_wide_V",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": true,
+         "max_freq": 0.001,
+         "power": 4.3792799999999996,
+         "sigma": 0.00017572199999999998
+      },
+      "name": "Wiener_wide_W",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": false,
+         "max_freq": 1,
+         "power": 2,
+         "sigma": 0.42314218766081724
+      },
+      "name": "Wire_ind",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "flag": false,
+         "max_freq": 1,
+         "power": 2,
+         "sigma": 1.6925687506432689
+      },
+      "name": "Wire_col",
+      "type": "HfFilter"
+   },
+   {
+      "data": {
+         "ADC_mV": 2925000000,
+         "anode": "AnodePlane:apa0",
+         "break_roi_loop1_tag": "break_roi_1st0",
+         "break_roi_loop2_tag": "break_roi_2nd0",
+         "cleanup_roi_tag": "cleanup_roi0",
+         "ctoffset": 1000,
+         "decon_charge_tag": "decon_charge0",
+         "dft": "FftwDFT",
+         "elecresponse": "ColdElecResponse",
+         "extend_roi_tag": "extend_roi0",
+         "fft_flag": 0,
+         "field_response": "FieldResponse:field0",
+         "ftoffset": 0,
+         "gauss_tag": "gauss0",
+         "isWrapped": false,
+         "loose_lf_tag": "loose_lf0",
+         "lroi_jump_one_bin": 1,
+         "lroi_rebin": 6,
+         "lroi_th_factor": 3.5,
+         "lroi_th_factor1": 0.69999999999999996,
+         "m_save_negative_charge": false,
+         "mp2_roi_tag": "mp2_roi0",
+         "mp3_roi_tag": "mp3_roi0",
+         "mp_tick_resolution": 10,
+         "per_chan_resp": "",
+         "postgain": 1,
+         "r_fake_signal_high_th": 750,
+         "r_fake_signal_high_th_ind_factor": 1,
+         "r_fake_signal_low_th": 375,
+         "r_fake_signal_low_th_ind_factor": 1,
+         "r_low_peak_sep_threshold_pre": 1200,
+         "r_sep_peak": 6,
+         "r_th_factor": 3,
+         "r_th_peak": 3,
+         "shrink_roi_tag": "shrink_roi0",
+         "sparse": false,
+         "tight_lf_tag": "tight_lf0",
+         "troi_col_th_factor": 5,
+         "troi_ind_th_factor": 3,
+         "use_multi_plane_protection": false,
+         "use_roi_debug_mode": false,
+         "wiener_tag": "wiener0",
+         "wiener_threshold_tag": "threshold0"
+      },
+      "name": "apa0sigproc0",
+      "type": "OmnibusSigProc"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "frames": [
+            "gauss0",
+            "wiener0"
+         ],
+         "output_filename": "mag.root",
+         "root_file_mode": "UPDATE",
+         "trace_has_tag": true
+      },
+      "name": "magdecon0",
+      "type": "MagnifySink"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "frames": [
+            "tight_lf0",
+            "loose_lf0",
+            "cleanup_roi0",
+            "break_roi_1st0",
+            "break_roi_2nd0",
+            "shrink_roi0",
+            "extend_roi0",
+            "mp2_roi0",
+            "mp3_roi0"
+         ],
+         "output_filename": "mag.root",
+         "root_file_mode": "UPDATE",
+         "trace_has_tag": true
+      },
+      "name": "magdebug0",
+      "type": "MagnifySink"
+   },
+   {
+      "data": {
+         "tag_rules": [
+            {
+               "frame": {
+                  ".*": "orig"
+               },
+               "merge": {
+                  "orig\\d": "daq"
+               }
+            }
+         ]
+      },
+      "type": "Retagger"
+   },
+   {
+      "data": {
+         "digitize": false,
+         "outname": "test.tar.bz2",
+         "tags": [
+            "orig",
+            "gauss"
+         ]
+      },
+      "type": "FrameFileSink"
+   },
+   {
+      "data": {
+         "edges": [
+            {
+               "head": {
+                  "node": "DepoSetDrifter",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoFileSource",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "DepoSetFanout:sn_mag_nf",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoSetDrifter",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "Retagger",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "FrameFanin:sn_mag_nf",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "FrameFileSink",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "Retagger",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "DepoTransform:depotransform-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoSetFanout:sn_mag_nf",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "FrameFanin:sn_mag_nf",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "MagnifySink:magdebug0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "MagnifySink:magorig0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "Digitizer:digitizer-apa0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "OmnibusSigProc:apa0sigproc0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "MagnifySink:magorig0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "MagnifySink:magdecon0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "OmnibusSigProc:apa0sigproc0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "MagnifySink:magdebug0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "MagnifySink:magdecon0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "Reframer:reframer-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoTransform:depotransform-apa0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "AddNoise:addnoise-empericalnoise-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "Reframer:reframer-apa0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "Digitizer:digitizer-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "AddNoise:addnoise-empericalnoise-apa0",
+                  "port": 0
+               }
+            }
+         ]
+      },
+      "type": "Pgrapher"
+   }
+]
