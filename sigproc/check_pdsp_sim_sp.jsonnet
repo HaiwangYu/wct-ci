@@ -13,6 +13,7 @@ local io = import 'pgrapher/common/fileio.jsonnet';
 
 local input = std.extVar('input');
 local output = std.extVar('output');
+local use_dnnroi = false;
 
 local tools_maker = import 'pgrapher/common/tools.jsonnet';
 local base = import 'pgrapher/experiment/pdsp/simparams.jsonnet';
@@ -78,7 +79,16 @@ local nf_maker = import 'pgrapher/experiment/pdsp/nf.jsonnet';
 local nf_pipes = [nf_maker(params, tools.anodes[n], chndb[n], n, name='nf%d' % n) for n in anode_iota];
 
 local sp_maker = import 'pgrapher/experiment/pdsp/sp.jsonnet';
-local sp_override = {
+local sp_override = if use_dnnroi then
+{
+    sparse: false,
+    use_roi_debug_mode: true,
+    m_save_negative_charge: true,
+    use_multi_plane_protection: true,
+    mp_tick_resolution: 10,
+}
+else
+{
     sparse: false,
     use_roi_debug_mode: false,
     m_save_negative_charge: false,
@@ -95,7 +105,7 @@ local ts = {
     name: "dnnroi",
     data: {
         model: "ts-model/unet-l23-cosmic500-e50.ts",
-        device: "gpucpu",
+        device: "cpu",
         concurrency: 1,
     },
 };
@@ -149,8 +159,10 @@ local multipass = [
         sinks.decon_pipe[n],
         sinks.debug_pipe[n],
         // sinks.threshold_pipe[n],
-        // dnnroi(tools.anodes[n], ts, output_scale=1.0),
-    ], 'multipass%d' % n)
+    ] + if use_dnnroi then [
+        dnnroi(tools.anodes[n], ts, output_scale=1.0),
+        sinks.dnnroi_pipe[n],
+    ] else [], 'multipass%d' % n)
   for n in anode_iota
 ];
 local outtags = ['orig%d' % n for n in anode_iota];

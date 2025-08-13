@@ -1,6 +1,7 @@
 *.root
 *.bz2
 *.json
-*.log
+*log
 *.db
 *.sh
+
