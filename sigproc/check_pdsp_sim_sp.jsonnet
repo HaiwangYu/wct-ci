@@ -13,7 +13,8 @@ local io = import 'pgrapher/common/fileio.jsonnet';
 
 local input = std.extVar('input');
 local output = std.extVar('output');
-local use_dnnroi = false;
+local use_dnnroi = true;
+local inference_service = "TritonService"; // "TorchService" or "TritonService"
 
 local tools_maker = import 'pgrapher/common/tools.jsonnet';
 local base = import 'pgrapher/experiment/pdsp/simparams.jsonnet';
@@ -83,7 +84,7 @@ local sp_override = if use_dnnroi then
 {
     sparse: false,
     use_roi_debug_mode: true,
-    m_save_negative_charge: true,
+    m_save_negative_charge: false,
     use_multi_plane_protection: true,
     mp_tick_resolution: 10,
 }
@@ -100,7 +101,9 @@ local sp_pipes = [sp.make_sigproc(a) for a in tools.anodes];
 
 
 local dnnroi = import 'pgrapher/experiment/dune-vd/dnnroi.jsonnet';
-local ts = {
+local ts =
+if inference_service == "TorchService" then
+{
     type: "TorchService",
     name: "dnnroi",
     data: {
@@ -108,7 +111,17 @@ local ts = {
         device: "cpu",
         concurrency: 1,
     },
-};
+}
+else if inference_service == "TritonService" then
+{
+    type: "TritonService",
+    name: "dnnroi",
+    data: {
+        url: "ailab01.fnal.gov:8001",
+        model: "dnn",
+    },
+}
+else error("unsupported inference_service: " + inference_service);
 
 local magoutput = 'mag.root';
 local magnify = import 'pgrapher/experiment/dune-vd/magnify-sinks.jsonnet';
@@ -118,7 +131,7 @@ local sio_sinks = g.pnode({
         type: "FrameFileSink",
         data: {
             outname: output, // "frames.tar.bz2",
-            tags: ["orig", "gauss"],
+            tags: ["orig", "gauss", "dnnsp"],
             digitize: false,
         },
     }, nin=1, nout=0);
@@ -165,8 +178,19 @@ local multipass = [
     ] else [], 'multipass%d' % n)
   for n in anode_iota
 ];
+
 local outtags = ['orig%d' % n for n in anode_iota];
-local bi_manifold = f.fanpipe('DepoSetFanout', multipass, 'FrameFanin', 'sn_mag_nf', outtags);
+local tag_rules = [{
+    frame: {
+        '.*': 'framefanin',
+    },
+    trace: {['gauss%d' % anode.data.ident]: ['gauss%d' % anode.data.ident] for anode in tools.anodes}
+        + {['wiener%d' % anode.data.ident]: ['wiener%d' % anode.data.ident] for anode in tools.anodes}
+        + {['threshold%d' % anode.data.ident]: ['threshold%d' % anode.data.ident] for anode in tools.anodes}
+        + {['dnnsp%d' % anode.data.ident]: ['dnnsp%d' % anode.data.ident] for anode in tools.anodes},
+} for anode in tools.anodes];
+// local bi_manifold = f.fanpipe('DepoSetFanout', multipass, 'FrameFanin', 'sn_mag_nf', outtags=outtags);
+local bi_manifold = f.fanpipe('DepoSetFanout', multipass, 'FrameFanin', 'sn_mag_nf', in_tag_rules=tag_rules);
 // local bi_manifold = f.fanpipe('DepoFanout', multipass, 'FrameFanin', 'sn_mag_nf', outtags);
 
 local retagger = g.pnode({
@@ -177,10 +201,12 @@ local retagger = g.pnode({
       // Retagger also handles "frame" and "trace" like fanin/fanout
       // merge separately all traces like gaussN to gauss.
       frame: {
-        '.*': 'orig',
+        '.*': 'retagger',
       },
       merge: {
-        'orig\\d': 'daq',
+        'gauss\\d': 'orig',
+        'wiener\\d': 'wiener',
+        'dnnsp\\d': 'orig',
       },
     }],
   },
@@ -196,7 +222,10 @@ local depo_source  = g.pnode({
 }, nin=0, nout=1);
 
 local graph = g.pipeline([depo_source, setdrifter, bi_manifold, retagger, sio_sinks]);
-local plugins = [ "WireCellSio", "WireCellGen", "WireCellSigProc","WireCellApps", "WireCellPgraph", "WireCellTbb", "WireCellRoot", "WireCellHio", "WireCellPytorch"];
+local plugins = [ "WireCellSio", "WireCellGen", "WireCellSigProc","WireCellApps", "WireCellPgraph", "WireCellTbb", "WireCellRoot", "WireCellHio"]
++ (if use_dnnroi then ["WireCellPytorch"] else [])
++ (if inference_service == "TritonService" then ["WireCellTriton"] else [])
+;
 
 // Pgrapher or TbbFlow
 local engine = "Pgrapher";
