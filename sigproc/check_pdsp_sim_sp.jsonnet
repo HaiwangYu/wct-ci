@@ -14,7 +14,9 @@ local io = import 'pgrapher/common/fileio.jsonnet';
 local input = std.extVar('input');
 local output = std.extVar('output');
 local use_dnnroi = true;
-local inference_service = "TritonService"; // "TorchService" or "TritonService"
+local inference_service = "TorchService"; // "TorchService" or "TritonService"
+local nchunks = 1;
+local model = "ts-model/mobileunet_largedataset_fullimage.ts"; // mobilenetv3-hokyeong.ts, unet-haiwang.ts
 
 local tools_maker = import 'pgrapher/common/tools.jsonnet';
 local base = import 'pgrapher/experiment/pdsp/simparams.jsonnet';
@@ -87,6 +89,12 @@ local sp_override = if use_dnnroi then
     m_save_negative_charge: false,
     use_multi_plane_protection: true,
     mp_tick_resolution: 10,
+    tight_lf_tag: "",
+    cleanup_roi_tag: "",
+    break_roi_loop1_tag: "",
+    break_roi_loop2_tag: "",
+    shrink_roi_tag: "",
+    extend_roi_tag: "",
 }
 else
 {
@@ -107,7 +115,7 @@ if inference_service == "TorchService" then
     type: "TorchService",
     name: "dnnroi",
     data: {
-        model: "ts-model/unet-l23-cosmic500-e50.ts",
+        model: model,
         device: "cpu",
         concurrency: 1,
     },
@@ -164,17 +172,17 @@ local hio_sp = [g.pnode({
 local multipass = [
     g.pipeline([
         sn_pipes[n],
-        sinks.orig_pipe[n],
+        // sinks.orig_pipe[n],
         // sio_sinks[n],
         // nf_pipes[n],
         sp_pipes[n],
         // hio_sp[n],
-        sinks.decon_pipe[n],
-        sinks.debug_pipe[n],
+        // sinks.decon_pipe[n],
+        // sinks.debug_pipe[n],
         // sinks.threshold_pipe[n],
     ] + if use_dnnroi then [
-        dnnroi(tools.anodes[n], ts, output_scale=1.0),
-        sinks.dnnroi_pipe[n],
+        dnnroi(tools.anodes[n], ts, output_scale=1.0, nchunks=nchunks),
+        // sinks.dnnroi_pipe[n],
     ] else [], 'multipass%d' % n)
   for n in anode_iota
 ];
