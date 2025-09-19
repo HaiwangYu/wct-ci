@@ -6,8 +6,10 @@ wirecell-plot frame -n wave --interactive -o test.pdf test.tar.bz2
 wirecell-plot comp1d -n wave -t orig -o tmp.pdf --chmin 700 --chmax 701 --interactive pr445-dnn.tar.bz2 test.tar.bz2
 wirecell-plot comp1d -n wave -t orig -o tmp.pdf --chmin 1230 --chmax 1231 --interactive pr445-dnn.tar.bz2 test.tar.bz2
 wirecell-plot comp1d -n wave -t orig -o tmp.pdf --chmin 2280 --chmax 2281 --interactive pr445-dnn.tar.bz2 test.tar.bz2
-rename test pr445 *
+rename test pr445-triton *
 ```
 
 
-wirecell-plot comp1d -n wave -o tmp.pdf --chmin 700 --chmax 701 --interactive rc-0.30.0.tar.bz2 test.tar.bz2
+```bash
+valgrind --tool=massif --stacks=yes 
+```
