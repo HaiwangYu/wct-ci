@@ -343,10 +343,14 @@ physics: {
                "WireCellRoot",
                "WireCellPgraph",
                "WireCellLarsoft"
+               , "WireCellHio"
+               , "WireCellPytorch"
+               , "WireCellTriton"
             ]
             structs: {
                Nbit: 14
                elecGain: 14
+               use_resampler: true
             }
             tool_type: "WCLS"
          }
