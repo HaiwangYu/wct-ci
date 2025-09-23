@@ -1,0 +1,1022 @@
+# Produced from 'fhicl-dump' using:
+#   Input  : protodunevd_reco.fcl
+#   Policy : cet::filepath_maker
+#   Path   : "FHICL_FILE_PATH"
+
+outputs: {
+   out1: {
+      compressionLevel: 1
+      dataTier: "full-reconstructed"
+      fastCloning: true
+      fileName: "%ifb_reco.root"
+      module_type: "RootOutput"
+      outputCommands: [
+         "keep *",
+         "drop *_reco3d_noreg_*",
+         "drop *_reco3d_pre_*"
+      ]
+   }
+}
+physics: {
+   end_paths: [
+      "stream1"
+   ]
+   filters: {
+      nhitsfilter: {
+         HitLimit: 40000
+         HitModule: "gaushit"
+         LimitPerTPC: true
+         ScaleThresholdForReadoutWindow: true
+         Verbose: false
+         module_type: "NumberOfHitsFilter"
+      }
+      trigfilter: {
+         LogLevel: 1
+         TimingFlagDeselectList: []
+         TimingFlagSelectList: []
+         TimingInstance: "daq"
+         TimingLabel: "timingrawdecoder"
+         TriggerInstance: "daq"
+         TriggerLabel: "ctbrawdecoder"
+         module_type: "ProtoDUNETriggerFilter"
+      }
+   }
+   producers: {
+      emtrkmichelid: {
+         BatchSize: 256
+         ClusterModuleLabel: "pandora"
+         HitModuleLabel: "hitpdune"
+         PointIdAlg: {
+            AdcMax: 30
+            AdcMin: -10
+            BlurKernel: []
+            CalibrateAmpl: true
+            CalibrateLifetime: true
+            CalorimetryAlg: {
+               CalAmpConstants: [
+                  9.033e-4,
+                  1.0287e-3,
+                  8.8e-4
+               ]
+               CalAreaConstants: [
+                  5.122e-3,
+                  5.102e-3,
+                  5.045e-3
+               ]
+               CaloDoLifeTimeCorrection: true
+               CaloLifeTimeForm: 0
+               CaloUseModBox: true
+            }
+            CoherentSigma: 0
+            DownscaleFn: "mean"
+            DownscaleFullView: true
+            DriftWindow: 6
+            NNetModelFile: "CnnModels/cnn_emtrkmichl_pitch_5_wire_48_drift_48_down_6_mean_notes_protoduneBeamAndCosmicsMCC11.pb"
+            NNetOutputs: [
+               "track",
+               "em",
+               "none",
+               "michel"
+            ]
+            NoiseSigma: 0
+            OutMax: 15
+            OutMin: -5
+            PatchSizeD: 48
+            PatchSizeW: 48
+         }
+         TrackModuleLabel: ""
+         Views: []
+         WireLabel: "wclsdatavd:gauss"
+         module_type: "EmTrackMichelId"
+      }
+      gaushit: {
+         AllHitsInstanceName: ""
+         AreaMethod: 0
+         AreaNorms: [
+            1.325e1,
+            1.325e1,
+            1.325e1
+         ]
+         CalDataModuleLabel: "wclsdatavd:gauss"
+         Chi2NDF: 50
+         FilterHits: false
+         HitFilterAlg: {
+            AlgName: "HitFilterAlg"
+            MinPulseHeight: [
+               5,
+               5,
+               5
+            ]
+            MinPulseSigma: [
+               1,
+               1,
+               1
+            ]
+         }
+         HitFinderToolVec: {
+            CandidateHitsPlane0: {
+               Plane: 0
+               RoiThreshold: 2
+               tool_type: "CandHitStandard"
+            }
+            CandidateHitsPlane1: {
+               Plane: 1
+               RoiThreshold: 2
+               tool_type: "CandHitStandard"
+            }
+            CandidateHitsPlane2: {
+               Plane: 2
+               RoiThreshold: 2
+               tool_type: "CandHitStandard"
+            }
+         }
+         InitWidth: [
+            6,
+            6,
+            6
+         ]
+         LongMaxHits: [
+            1,
+            1,
+            1
+         ]
+         LongPulseWidth: [
+            16,
+            16,
+            16
+         ]
+         MaxMultiHit: 4
+         PeakFitter: {
+            MaxWidthMult: 3
+            MinWidth: 5e-1
+            PeakAmpRange: 2
+            PeakRangeFact: 2
+            tool_type: "PeakFitterMrqdt"
+         }
+         PulseHeightCuts: [
+            3,
+            3,
+            3
+         ]
+         PulseRatioCuts: [
+            3.5e-1,
+            4e-1,
+            2e-1
+         ]
+         PulseWidthCuts: [
+            2,
+            1.5,
+            1
+         ]
+         module_type: "GausHitFinder"
+      }
+      hitpdune: {
+         ExcludeTPCs: []
+         HitModuleLabel: "gaushit"
+         MaxDistance: 1000
+         MonitoringPlots: false
+         MoveLeftovers: "repeat"
+         NumNeighbors: 2
+         SpModuleLabel: "reco3d"
+         UseNeighbors: true
+         module_type: "DisambigFromSpacePoints"
+      }
+      pandora: {
+         ConfigFile: "PandoraSettings_Master_ProtoDUNE_VD.xml"
+         EnableLineGaps: true
+         EnableMCParticles: false
+         EnableProduction: true
+         GeantModuleLabel: "tpcrawdecoder:simpleSC"
+         HitFinderModuleLabel: "hitpdune"
+         PrintOverallRecoStatus: false
+         ShouldPerformSliceId: true
+         ShouldRunAllHitsCosmicReco: true
+         ShouldRunCosmicHitRemoval: true
+         ShouldRunCosmicRecoOption: true
+         ShouldRunNeutrinoRecoOption: true
+         ShouldRunSlicing: true
+         ShouldRunStitching: true
+         UseGlobalCoordinates: true
+         UseHitWidths: true
+         module_type: "StandardPandora"
+      }
+      pandoraGnocalo: {
+         AssocHitModuleLabel: "pandoraTrack"
+         CaloAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               5e-3,
+               5e-3,
+               5e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         ChargeMethod: 2
+         Cryostat: 0
+         FieldDistortion: false
+         FieldDistortionCorrectionXSign: 1
+         FieldDistortionEfield: false
+         NormTools: []
+         PFPModuleLabel: "pandora"
+         T0ModuleLabel: ""
+         TrackIsFieldDistortionCorrected: false
+         TrackModuleLabel: "pandoraTrack"
+         module_type: "GnocchiCalorimetry"
+      }
+      pandoraShower: {
+         PFParticleLabel: "pandora"
+         module_type: "LArPandoraShowerCreation"
+      }
+      pandoraStdcalo: {
+         CaloAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               5e-3,
+               5e-3,
+               5e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         CorrectSCE: false
+         FlipTrack_dQdx: false
+         SpacePointModuleLabel: "pandora"
+         T0ModuleLabel: ""
+         TrackModuleLabel: "pandoraTrack"
+         UseArea: true
+         module_type: "Calorimetry"
+      }
+      pandoraTrack: {
+         PFParticleLabel: "pandora"
+         module_type: "LArPandoraTrackCreation"
+      }
+      pandoraWriter: {
+         ConfigFile: "PandoraSettings_Write.xml"
+         EnableLineGaps: true
+         EnableMCParticles: true
+         EnableProduction: false
+         GeantModuleLabel: "tpcrawdecoder:simpleSC"
+         GeneratorModuleLabel: "generator"
+         HitFinderModuleLabel: "hitpdune"
+         PrintOverallRecoStatus: false
+         ShouldPerformSliceId: false
+         ShouldRunAllHitsCosmicReco: false
+         ShouldRunCosmicHitRemoval: false
+         ShouldRunCosmicRecoOption: false
+         ShouldRunNeutrinoRecoOption: false
+         ShouldRunSlicing: false
+         ShouldRunStitching: false
+         UseGlobalCoordinates: true
+         UseHitWidths: true
+         module_type: "StandardPandora"
+      }
+      pandoracalipid: {
+         CalorimetryModuleLabel: "pandoracali"
+         TrackModuleLabel: "pandoraTrack"
+      }
+      pandorapid: {
+         CalorimetryModuleLabel: "pandoracalo"
+         TrackModuleLabel: "pandoraTrack"
+      }
+      reco3d: {
+         AllowBadCollectionHit: true
+         AllowBadInductionHit: true
+         Alpha: 5e-2
+         Fit: true
+         HitLabel: "gaushit"
+         HitReaderTool: {
+            tool_type: "HitsStandard"
+         }
+         MaxIterationsNoReg: 100
+         MaxIterationsReg: 100
+         MaxNTriplets: 0
+         MinNHits: 20
+         WireIntersectThreshold: 3e-1
+         WireIntersectThresholdDriftDir: 3e-1
+         XHitOffset: 0
+         module_type: "SpacePointSolver"
+      }
+      rns: {
+         module_type: "RandomNumberSaver"
+      }
+      wclsdatavd: {
+         module_type: "WireCellToolkit"
+         wcls_main: {
+            apps: [
+               "Pgrapher"
+            ]
+            configs: [
+               "pgrapher/experiment/protodunevd/wcls-nf-sp.jsonnet"
+            ]
+            inputers: [
+               "wclsRawFrameSource"
+            ]
+            loglevels: [
+               "debug",
+               "pgraph:info"
+            ]
+            logsinks: [
+               "stdout"
+            ]
+            outputers: [
+               "wclsFrameSaver:spsaver"
+            ]
+            params: {
+               epoch: "after"
+               raw_input_label: "tpcrawdecoder:daq"
+               reality: "data"
+               signal_output_form: "sparse"
+               use_magnify: "true"
+            }
+            plugins: [
+               "WireCellGen",
+               "WireCellSigProc",
+               "WireCellRoot",
+               "WireCellPgraph",
+               "WireCellLarsoft"
+            ]
+            structs: {
+               Nbit: 14
+               elecGain: 14
+            }
+            tool_type: "WCLS"
+         }
+      }
+   }
+   reco: [
+      # "rns",
+      "wclsdatavd"
+      # "gaushit",
+      # "reco3d",
+      # "hitpdune",
+      # "pandora",
+      # "pandoraTrack",
+      # "pandoraShower",
+      # "pandoraStdcalo",
+      # "pandoraGnocalo"
+   ]
+   stream1: [
+      "out1"
+   ]
+   trigger_paths: [
+      "reco"
+   ]
+}
+process_name: "Reco"
+services: {
+   AuxDetGeometry: {
+      GDML: "protodunevd_v4_refactored.gdml"
+      Name: "protodunevd_v4"
+      SortingParameters: {
+         tool_type: "AuxDetGeoObjectSorterStandard"
+      }
+   }
+   BackTrackerService: {
+      BackTracker: {
+         G4ModuleLabel: "largeant"
+         MinimumHitEnergyFraction: 1e-1
+         SimChannelModuleLabel: "tpcrawdecoder:simpleSC"
+      }
+   }
+   ChannelGroupService: {
+      ApaRops: []
+      LogLevel: 1
+      service_provider: "GeoApaChannelGroupService"
+   }
+   ChannelStatusService: {
+      BadChannels: []
+      NoisyChannels: []
+      service_provider: "SimpleChannelStatusService"
+   }
+   DatabaseUtil: {
+      DBHostName: "fnalpgsdev.fnal.gov"
+      DBName: "dune_dev"
+      DBUser: "dune_reader"
+      PassFileName: ".lpswd"
+      Port: 5438
+      ShouldConnect: false
+      TableName: "main_run"
+      ToughErrorTreatment: false
+   }
+   DetectorClocksService: {
+      ClockSpeedExternal: 3.125e1
+      ClockSpeedOptical: 150
+      ClockSpeedTPC: 2
+      ClockSpeedTrigger: 16
+      DefaultBeamTime: 250
+      DefaultTrigTime: 250
+      FramePeriod: 1600
+      G4RefTime: -250
+      InheritClockConfig: false
+      TrigModuleName: ""
+      TriggerOffsetTPC: -250
+      service_provider: "DetectorClocksServiceStandard"
+   }
+   DetectorPropertiesService: {
+      DriftVelFudgeFactor: 1
+      Efield: [
+         4.95e-1,
+         3.125,
+         5e-1,
+         3.125
+      ]
+      Electronlifetime: 35000
+      ElectronsToADC: 6.8906513e-3
+      IncludeInterPlanePitchInXTickOffsets: true
+      NumberTimeSamples: 6000
+      ReadOutWindowSize: 6000
+      SimpleBoundaryProcess: true
+      SternheimerA: 1.956e-1
+      SternheimerCbar: 5.2146
+      SternheimerK: 3
+      SternheimerX0: 2e-1
+      SternheimerX1: 3
+      Temperature: 8.768e1
+      TimeOffsetU: 0
+      TimeOffsetV: 0
+      TimeOffsetZ: 0
+      UseIcarusMicrobooneDriftModel: false
+      service_provider: "DetectorPropertiesServiceStandard"
+   }
+   FileCatalogMetadata: {
+      applicationFamily: "art"
+      applicationVersion: "development"
+      fileType: "mc"
+      group: "dune"
+      runType: "physics"
+   }
+   Geometry: {
+      GDML: "protodunevd_v4_refactored.gdml"
+      Name: "protodunevd_v4"
+      ROOT: "protodunevd_v4_refactored.gdml"
+      SortingParameters: {
+         SortTPCPDVD: true
+         tool_type: "GeoObjectSorterCRU60D"
+      }
+      SurfaceY: 0
+   }
+   GeometryConfigurationWriter: {}
+   IFDH: {}
+   LArFFT: {
+      FFTOption: ""
+      FFTSize: 0
+      FitBins: 5
+   }
+   LArPropertiesService: {
+      AbsLengthEnergies: [
+         4,
+         5,
+         6,
+         7,
+         8,
+         9,
+         10,
+         11
+      ]
+      AbsLengthSpectrum: [
+         8000,
+         8000,
+         8000,
+         8000,
+         8000,
+         2000,
+         2000,
+         2000
+      ]
+      AlphaScintYield: 16800
+      AlphaScintYieldRatio: 5.6e-1
+      Argon39DecayRate: 0
+      AtomicMass: 3.9948e1
+      AtomicNumber: 18
+      ElectronScintYield: 20000
+      ElectronScintYieldRatio: 2.7e-1
+      EnableCerenkovLight: false
+      ExcitationEnergy: 188
+      FastScintEnergies: [
+         7.2,
+         7.9,
+         8.3,
+         8.6,
+         8.9,
+         9.1,
+         9.3,
+         9.6,
+         9.7,
+         9.8,
+         10,
+         1.02e1,
+         1.03e1,
+         1.06e1,
+         11,
+         1.16e1,
+         1.19e1
+      ]
+      FastScintSpectrum: [
+         0,
+         4e-2,
+         1.2e-1,
+         2.7e-1,
+         4.4e-1,
+         6.2e-1,
+         8e-1,
+         9.1e-1,
+         9.2e-1,
+         8.5e-1,
+         7e-1,
+         5e-1,
+         3.1e-1,
+         1.3e-1,
+         4e-2,
+         1e-2,
+         0
+      ]
+      KaonScintYield: 24000
+      KaonScintYieldRatio: 2.3e-1
+      LoadExtraMatProperties: true
+      MuonScintYield: 24000
+      MuonScintYieldRatio: 2.3e-1
+      PionScintYield: 24000
+      PionScintYieldRatio: 2.3e-1
+      ProtonScintYield: 19200
+      ProtonScintYieldRatio: 2.9e-1
+      RIndexEnergies: [
+         1.18626,
+         1.68626,
+         2.18626,
+         2.68626,
+         3.18626,
+         3.68626,
+         4.18626,
+         4.68626,
+         5.18626,
+         5.68626,
+         6.18626,
+         6.68626,
+         7.18626,
+         7.68626,
+         8.18626,
+         8.68626,
+         9.18626,
+         9.68626,
+         1.01863e1,
+         1.06863e1,
+         1.11863e1
+      ]
+      RIndexSpectrum: [
+         1.24664,
+         1.2205,
+         1.22694,
+         1.22932,
+         1.23124,
+         1.23322,
+         1.23545,
+         1.23806,
+         1.24116,
+         1.24489,
+         1.24942,
+         1.25499,
+         1.26197,
+         1.2709,
+         1.28263,
+         1.29865,
+         1.32169,
+         1.35747,
+         1.42039,
+         1.56011,
+         2.16626
+      ]
+      RadiationLength: 1.955e1
+      RayleighEnergies: [
+         1.18626,
+         1.68626,
+         2.18626,
+         2.68626,
+         3.18626,
+         3.68626,
+         4.18626,
+         4.68626,
+         5.18626,
+         5.68626,
+         6.18626,
+         6.68626,
+         7.18626,
+         7.68626,
+         8.18626,
+         8.68626,
+         9.18626,
+         9.68626,
+         1.01863e1,
+         1.06863e1,
+         1.11863e1
+      ]
+      RayleighSpectrum: [
+         1.2008e6,
+         390747,
+         128633,
+         5.49691e4,
+         2.71918e4,
+         1.48537e4,
+         8.7169e3,
+         5.39742e3,
+         3.48137e3,
+         2.31651e3,
+         1.57763e3,
+         1.09202e3,
+         7.63045e2,
+         5.34232e2,
+         3.71335e2,
+         2.52942e2,
+         1.6538e2,
+         9.99003e1,
+         5.12653e1,
+         1.7495e1,
+         9.64341e-1
+      ]
+      ReflectiveSurfaceDiffuseFractions: [
+         [
+            5e-1,
+            5e-1,
+            5e-1
+         ]
+      ]
+      ReflectiveSurfaceEnergies: [
+         7,
+         9,
+         10
+      ]
+      ReflectiveSurfaceNames: [
+         "STEEL_STAINLESS_Fe7Cr2Ni"
+      ]
+      ReflectiveSurfaceReflectances: [
+         [
+            2.5e-1,
+            2.5e-1,
+            2.5e-1
+         ]
+      ]
+      ScintBirksConstant: 6.9e-2
+      ScintByParticleType: false
+      ScintFastTimeConst: 6
+      ScintPreScale: 1
+      ScintResolutionScale: 1
+      ScintSlowTimeConst: 1590
+      ScintYield: 24000
+      ScintYieldRatio: 2.3e-1
+      SlowScintEnergies: [
+         7.2,
+         7.9,
+         8.3,
+         8.6,
+         8.9,
+         9.1,
+         9.3,
+         9.6,
+         9.7,
+         9.8,
+         10,
+         1.02e1,
+         1.03e1,
+         1.06e1,
+         11,
+         1.16e1,
+         1.19e1
+      ]
+      SlowScintSpectrum: [
+         0,
+         4e-2,
+         1.2e-1,
+         2.7e-1,
+         4.4e-1,
+         6.2e-1,
+         8e-1,
+         9.1e-1,
+         9.2e-1,
+         8.5e-1,
+         7e-1,
+         5e-1,
+         3.1e-1,
+         1.3e-1,
+         4e-2,
+         1e-2,
+         0
+      ]
+      TpbAbsorptionEnergies: [
+         5e-2,
+         1.77,
+         2.0675,
+         7.42,
+         7.75,
+         8.16,
+         8.73,
+         9.78,
+         1.069e1,
+         5.039e1
+      ]
+      TpbAbsorptionSpectrum: [
+         100000,
+         100000,
+         100000,
+         1e-3,
+         1e-11,
+         1e-11,
+         1e-11,
+         1e-11,
+         1e-11,
+         1e-11
+      ]
+      TpbEmmisionEnergies: [
+         5e-2,
+         1,
+         1.5,
+         2.25,
+         2.481,
+         2.819,
+         2.952,
+         2.988,
+         3.024,
+         3.1,
+         3.14,
+         3.1807,
+         3.54,
+         5.5,
+         5.039e1
+      ]
+      TpbEmmisionSpectrum: [
+         0,
+         0,
+         0,
+         5.88e-2,
+         2.35e-1,
+         8.53e-1,
+         1,
+         1,
+         9.259e-1,
+         7.04e-1,
+         2.96e-2,
+         1.1e-2,
+         0,
+         0,
+         0
+      ]
+      TpbTimeConstant: 2.5
+      service_provider: "LArPropertiesServiceStandard"
+   }
+   LifetimeCalibService: {
+      Interpolate: true
+      IsMC: false
+      LifetimeDBTag: ""
+      LifetimeFileName: ""
+      UseCondbLifetime: false
+      service_provider: "LifetimeCalibServiceProtoDUNE"
+   }
+   MemoryTracker: {
+      dbOutput: {
+         filename: "mem.db"
+         overwrite: true
+      }
+      includeMallocInfo: true
+   }
+   NuRandomService: {
+      endOfJobSummary: true
+      policy: "random"
+   }
+   ParticleInventoryService: {
+      ParticleInventory: {
+         EveIdCalculator: "EmEveIdCalculator"
+         G4ModuleLabel: "largeant"
+      }
+   }
+   PdspChannelMapService: {
+      FELIXFileName: "protoDUNETPCChannelMap_FELIX_v4.txt"
+      FileName: "protoDUNETPCChannelMap_RCE_v4.txt"
+      LogLevel: 1
+      SSPFileName: "protoDUNESSPChannelMap_v1.txt"
+   }
+   PhotonBackTrackerService: {
+      PhotonBackTracker: {
+         Delay: 260
+         G4ModuleLabel: "largeant"
+         MinimumHitEnergyFraction: 1e-1
+      }
+   }
+   RandomNumberGenerator: {}
+   SignalShapingServiceDUNE: {
+      ADCPerPCAtLowestASICGain: 13160
+      ASICGainInMVPerFC: [
+         14,
+         14,
+         14
+      ]
+      CalibResponseTOffset: [
+         0,
+         0,
+         0
+      ]
+      Col3DCorrection: 2.5
+      ColFieldParams: [
+         8,
+         16,
+         7.5e-1
+      ]
+      ColFieldRespAmp: 1
+      ColFieldShape: "x^[2]/(1.0+(x/[0])^[1])"
+      ColFilter: "(x>0.0)*gaus"
+      ColFilterParams: [
+         1,
+         0,
+         1e-1
+      ]
+      DebugFieldShape: false
+      DeconNorm: 200
+      FieldBins: 400
+      FieldResponseFname: "FieldResponse/dune35t_response_v1.0.root"
+      FieldResponseHistoName: "FieldResponse"
+      FieldResponseTOffset: [
+         -32500,
+         -32500,
+         -32500
+      ]
+      FilterFunctionFname: "uboone_filters_v0.1.root"
+      FilterHistoName: "noisefilter_%d"
+      GetFilterFromHisto: false
+      Ind3DCorrection: 1.5
+      IndUFieldParams: [
+         8.43e-3,
+         1.534e-1,
+         1.77,
+         0,
+         5e-1
+      ]
+      IndUFieldRespAmp: 1
+      IndUFieldShape: "[0]*(1.0+[3]*tanh(x-[4]))*([4]-x)*exp(-0.5*((x-[4])/[2])^2.0)"
+      IndUFilter: "(x>0.0)*gaus"
+      IndUFilterParams: [
+         1,
+         0,
+         1e-1
+      ]
+      IndVFieldParams: [
+         8.43e-3,
+         1.534e-1,
+         1.77,
+         0,
+         5e-1
+      ]
+      IndVFieldRespAmp: 1
+      IndVFieldShape: "[0]*(1.0+[3]*tanh(x-[4]))*([4]-x)*exp(-0.5*((x-[4])/[2])^2.0)"
+      IndVFilter: "(x>0.0)*gaus"
+      IndVFilterParams: [
+         1,
+         0,
+         1e-1
+      ]
+      InputFieldRespSamplingPeriod: 100
+      Nbit: 12
+      NoiseFactVec: [
+         [
+            1.12,
+            8.6e-1,
+            6e-1,
+            5.5e-1
+         ],
+         [
+            1.12,
+            8.6e-1,
+            6e-1,
+            5.5e-1
+         ],
+         [
+            8.9e-1,
+            6.6e-1,
+            4.8e-1,
+            4.3e-1
+         ]
+      ]
+      ShapeTimeConst: [
+         2,
+         2,
+         2
+      ]
+      UseFunctionFieldShape: false
+      UseHistogramFieldShape: true
+   }
+   SpaceCharge: {
+      CalibrationInputFilename: "SpaceChargeProtoDUNE/SCE_DataDriven_180kV_v4.root"
+      EDAXPosOffs: [
+         -3,
+         -3
+      ]
+      EDBZPosOffs: [
+         -1,
+         -1
+      ]
+      EDChargeLossZHigh: [
+         233,
+         465
+      ]
+      EDChargeLossZLow: [
+         229,
+         461
+      ]
+      EDZCenter: [
+         231,
+         463
+      ]
+      EDs: [
+         2.5,
+         2.5
+      ]
+      EnableCalEfieldSCE: false
+      EnableCalSpatialSCE: false
+      EnableCorrSCE: false
+      EnableElectronDiverterDistortions: [
+         true,
+         true
+      ]
+      EnableSimEfieldSCE: false
+      EnableSimSpatialSCE: false
+      InputFilename: "SpaceChargeProtoDUNE/SCE_DataDriven_180kV_v4.root"
+      RepresentationType: "Splines_TH3"
+      service_provider: "SpaceChargeServiceProtoDUNE"
+   }
+   TFileService: {
+      fileName: "reco_protoDUNE_hist.root"
+   }
+   TimeTracker: {
+      dbOutput: {
+         filename: "time.db"
+         overwrite: true
+      }
+      printSummary: true
+   }
+   WireReadout: {
+      ChannelsPerOpDet: 1
+      service_provider: "DUNEWireReadout"
+   }
+   XYZCalibService: {
+      Interpolate: false
+      IsMC: false
+      NormCorrDBTag: ""
+      NormCorrFileName: ""
+      UseCondbXYZCorr: true
+      XCorrDBTag: ""
+      XCorrFileName: ""
+      YZCorrDBTag: ""
+      YZCorrFileName: ""
+      service_provider: "XYZCalibServiceProtoDUNE"
+   }
+   message: {
+      debugModules: [
+         "*"
+      ]
+      destinations: {
+         LogDebugFile: {
+            append: false
+            categories: {
+               default: {
+                  limit: 0
+               }
+            }
+            filename: "debugprod.log"
+            threshold: "DEBUG"
+            type: "file"
+         }
+         LogStandardError: {
+            categories: {
+               default: {}
+}
+            threshold: "ERROR"
+            type: "cerr"
+}
+         LogStandardOut: {
+            categories: {
+               ArtReport: {
+                  limit: -1
+               }
+               default: {
+                  limit: 0
+               }
+            }
+            threshold: "INFO"
+            type: "cout"
+         }
+      }
+   }
+}
+source: {
+   fileNames: [
+      "detsim_single_protoDUNE.root"
+   ]
+   maxEvents: 100
+   module_type: "RootInput"
+   saveMemoryObjectThreshold: 0
+}
