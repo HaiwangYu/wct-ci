@@ -1,23 +1,24 @@
+Tested with `dunesw v10_05_00d00`
 
 ```bash
-
+path-prepend /exp/dune/app/users/yuhw/wct-ci/protodune-triton/cfg WIRECELL_PATH
 ```
 
+gen-g4-detsim chain:
 ```bash
 lar -n1 -c gen_protodunevd_cosmics.fcl -o gen.root
 lar -n1 -c protodunevd_refactored_g4_stage1.fcl gen.root -o g4a.root
 lar -n1 -c protodunevd_refactored_g4_stage2_pureAr.fcl g4a.root -o g4b.root
 lar -n1 -c protodunevd_refactored_detsim_pureAr.fcl g4b.root -o detsim.root
-lar -n1 -c protodunevd_reco.fcl detsim.root -o reco.root
+# lar -n1 -c protodunevd_reco.fcl detsim.root -o reco.root # this is the official fcl that we don't need to run
 ```
 
-
+run the SigProc with DNN-ROI with Triton:
 ```bash
-lar -n1 -c detsim.fcl g4b.root -o detsim.root
 lar -n1 -c reco.fcl detsim.root -o reco.root
 ```
 
-
+Other notes:
 `v10_06_00d01` stuck at g4a -> g4b for at least 30min
 
 ```bash
