@@ -336,6 +336,11 @@ physics: {
                reality: "data"
                signal_output_form: "sparse"
                use_magnify: "true"
+               inference_service: "TorchService"
+               dnn_roi_model: "/exp/dune/app/users/yuhw/wct-ci/sigproc/ts-model/unet-l23-cosmic500-e50.ts"
+               # inference_service: "TritonService"
+               # dnn_roi_model: "dnn"
+               triton_url: "ailab01.fnal.gov:8001"
             }
             plugins: [
                "WireCellGen",
@@ -351,6 +356,7 @@ physics: {
                Nbit: 14
                elecGain: 14
                use_resampler: true
+               use_dnnroi: true
             }
             tool_type: "WCLS"
          }
