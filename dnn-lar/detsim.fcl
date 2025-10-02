@@ -188,23 +188,23 @@ physics: {
    ]
    produce: [
       "fembfilter",
-      "wclsdatahd",
-      "gaushit",
-      "nhitsfilter",
-      "reco3d",
-      "hitpdune",
-      "pandora",
-      "pandoraWriter",
-      "pandoraTrack",
-      "pandoraShower",
-      "pandoracalo",
-      "pandoracalonosce",
-      "pandorapid",
-      "pandoraShowercalo",
-      "pandoraShowercalonosce",
-      "pandoraGnocchiCalo",
-      "pandoraGnocchiCalonosce",
-      "emtrkmichelid"
+      "wclsdatahd"
+      # "gaushit",
+      # "nhitsfilter",
+      # "reco3d",
+      # "hitpdune",
+      # "pandora",
+      # "pandoraWriter",
+      # "pandoraTrack",
+      # "pandoraShower",
+      # "pandoracalo",
+      # "pandoracalonosce",
+      # "pandorapid",
+      # "pandoraShowercalo",
+      # "pandoraShowercalonosce",
+      # "pandoraGnocchiCalo",
+      # "pandoraGnocchiCalonosce",
+      # "emtrkmichelid"
    ]
    producers: {
       crtreco: {
@@ -1432,7 +1432,7 @@ physics: {
                "wclsRawFrameSource"
             ]
             outputers: [
-               "wclsFrameSaver:spsaver",
+               # "wclsFrameSaver:spsaver",
                "wclsFrameSaver:dnnsaver"
             ]
             params: {
