@@ -1,0 +1,1961 @@
+# Produced from 'fhicl-dump' using:
+#   Input  : standard_reco_stage2_calibration_protodunehd_keepup_hnam.fcl
+#   Policy : cet::filepath_maker
+#   Path   : "FHICL_FILE_PATH"
+
+outputs: {
+   out1: {
+      compressionLevel: 1
+      dataTier: "full-reconstructed"
+      fileName: "%ifb_reco_stage2_%tc_keepup.root"
+      module_type: "RootOutput"
+      outputCommands: [
+         "keep *",
+         "drop raw::RawDigit*_*_*_*",
+         "drop recob::Wire*_*_wiener_*"
+      ]
+      streamName: "out1"
+   }
+}
+physics: {
+   ana: []
+   analyzers: {
+      calibana: {
+         CALOproducer: "pandoracalonosce"
+         DoTailFit: false
+         FillTrackEndHits: true
+         G4producer: "largeant"
+         HITproducer: "hitpdune"
+         HitRawDigitsTickCollectWidth: 200
+         HitRawDigitsWireCollectWidth: 5
+         PFPproducer: "pandora"
+         RadiusExt: 10
+         RadiusInt: 4
+         RawDigitproducers: [
+            "tpcrawdecoder:daq"
+         ]
+         RequireT0: true
+         SelectEvents: [
+            "produce"
+         ]
+         SelectionTools: [
+            {
+               CheckFiducialX: false
+               EndMediandQdxCut: 85
+               FVInsetMaxX: 40
+               FVInsetMaxY: 40
+               FVInsetMaxZ: 40
+               FVInsetMinX: 40
+               FVInsetMinY: 40
+               FVInsetMinZ: 40
+               MaxTimeTickInset: 100
+               MediandQdxRRMax: 5
+               MinTimeTickInset: 100
+               NumberTimeSamples: 5888
+               tool_type: "CalibAnaTreeSelectStoppingTrack"
+            },
+            {
+               RequireT0: true
+               TickCut: 4200
+               tool_type: "CalibAnaTreeSelectAnode2CathodeTrack"
+            },
+            {
+               RequireT0: true
+               tool_type: "CalibAnaTreeSelectAllTracks"
+            }
+         ]
+         SilenceMissingDataProducts: true
+         SimChannelproducer: ""
+         T0producers: [
+            "pandora"
+         ]
+         TRKHMproducer: ""
+         TRKproducer: "pandoraTrack"
+         TailFitResidualRange: 5
+         TrackEndHitTimeBox: 300
+         TrackEndHitWireBox: 60
+         Verbose: false
+         module_type: "CalibAnaTree"
+      }
+      calibanagnocchi: {
+         CALOproducer: "pandoraGnocchiCalonosce"
+         DoTailFit: false
+         FillTrackEndHits: true
+         G4producer: "largeant"
+         HITproducer: "hitpdune"
+         HitRawDigitsTickCollectWidth: 200
+         HitRawDigitsWireCollectWidth: 5
+         PFPproducer: "pandora"
+         RadiusExt: 10
+         RadiusInt: 4
+         RawDigitproducers: [
+            "wclsdatahdfilter:raw"
+         ]
+         RequireT0: true
+         SelectEvents: [
+            "produce"
+         ]
+         SelectionTools: [
+            {
+               CheckFiducialX: false
+               EndMediandQdxCut: 85
+               FVInsetMaxX: 40
+               FVInsetMaxY: 40
+               FVInsetMaxZ: 40
+               FVInsetMinX: 40
+               FVInsetMinY: 40
+               FVInsetMinZ: 40
+               MaxTimeTickInset: 100
+               MediandQdxRRMax: 5
+               MinTimeTickInset: 100
+               NumberTimeSamples: 5888
+               tool_type: "CalibAnaTreeSelectStoppingTrack"
+            },
+            {
+               RequireT0: true
+               TickCut: 4200
+               tool_type: "CalibAnaTreeSelectAnode2CathodeTrack"
+            },
+            {
+               RequireT0: true
+               tool_type: "CalibAnaTreeSelectAllTracks"
+            }
+         ]
+         SilenceMissingDataProducts: true
+         SimChannelproducer: ""
+         T0producers: [
+            "pandora"
+         ]
+         TRKHMproducer: ""
+         TRKproducer: "pandoraTrack"
+         TailFitResidualRange: 5
+         TrackEndHitTimeBox: 300
+         TrackEndHitWireBox: 60
+         Verbose: false
+         module_type: "CalibAnaTree"
+      }
+      michelremoving: {
+         CalorimetryModuleLabel: "pandoracalonosce"
+         HitsModuleLabel: "hitpdune"
+         MaxZ: 410
+         SaveTrackInfo: true
+         SelectEvents: [
+            "produce"
+         ]
+         TrackModuleLabel: "pandoraTrack"
+         module_type: "michelremoving"
+      }
+      michelremovinggnocchi: {
+         CalorimetryModuleLabel: "pandoraGnocchiCalonosce"
+         HitsModuleLabel: "hitpdune"
+         MaxZ: 410
+         SaveTrackInfo: true
+         SelectEvents: [
+            "produce"
+         ]
+         TrackModuleLabel: "pandoraTrack"
+         module_type: "michelremoving"
+      }
+   }
+   end_paths: [
+      "output",
+      "ana"
+   ]
+   filters: {
+      fembfilter: {
+         AllowedStatBits: [
+            1
+         ]
+         CheckStatWords: true
+         LogLevel: 0
+         RawDigitLabel: "tpcrawdecoder:daq"
+         RequireAllChannels: true
+         RequireSameSize: true
+         SkipDigitCheck: false
+         module_type: "PDHDFEMBFilter"
+      }
+      nhitsfilter: {
+         HitLimit: 20000
+         HitModule: "gaushit"
+         LimitPerTPC: true
+         ScaleThresholdForReadoutWindow: true
+         Verbose: true
+         module_type: "NumberOfHitsFilter"
+      }
+   }
+   output: [
+      "out1"
+   ]
+   produce: [
+      "fembfilter",
+      "wclsdatahd",
+      "gaushit",
+      "nhitsfilter",
+      "reco3d",
+      "hitpdune",
+      "pandora",
+      "pandoraWriter",
+      "pandoraTrack",
+      "pandoraShower",
+      "pandoracalo",
+      "pandoracalonosce",
+      "pandorapid",
+      "pandoraShowercalo",
+      "pandoraShowercalonosce",
+      "pandoraGnocchiCalo",
+      "pandoraGnocchiCalonosce",
+      "emtrkmichelid"
+   ]
+   producers: {
+      crtreco: {
+         CRTLabel: "crt"
+         MCC: "true"
+         SCECorrection: "true"
+         module_type: "TwoCRTMatchingProducer"
+      }
+      crttag: {
+         CRTLabel: "crt"
+         MCC: "true"
+         SCECorrection: "true"
+         module_type: "SingleCRTMatchingProducer"
+      }
+      emtrkmichelid: {
+         BatchSize: 256
+         ClusterModuleLabel: "pandora"
+         HitModuleLabel: "hitpdune"
+         PointIdAlg: {
+            AdcMax: 30
+            AdcMin: -10
+            BlurKernel: []
+            CalibrateAmpl: true
+            CalibrateLifetime: true
+            CalorimetryAlg: {
+               CalAmpConstants: [
+                  9.033e-4,
+                  1.0287e-3,
+                  8.8e-4
+               ]
+               CalAreaConstants: [
+                  5.122e-3,
+                  5.102e-3,
+                  5.045e-3
+               ]
+               CaloDoLifeTimeCorrection: true
+               CaloLifeTimeForm: 0
+               CaloUseModBox: true
+            }
+            CoherentSigma: 0
+            DownscaleFn: "mean"
+            DownscaleFullView: true
+            DriftWindow: 6
+            NNetModelFile: "CnnModels/cnn_emtrkmichl_pitch_5_wire_48_drift_48_down_6_mean_notes_protoduneBeamAndCosmicsMCC11.pb"
+            NNetOutputs: [
+               "track",
+               "em",
+               "none",
+               "michel"
+            ]
+            NoiseSigma: 0
+            OutMax: 15
+            OutMin: -5
+            PatchSizeD: 48
+            PatchSizeW: 48
+         }
+         TrackModuleLabel: ""
+         Views: []
+         WireLabel: "wclsdatahd:gauss"
+         module_type: "EmTrackMichelId"
+      }
+      gaushit: {
+         AllHitsInstanceName: ""
+         AreaMethod: 0
+         AreaNorms: [
+            1.325e1,
+            1.325e1,
+            1.325e1
+         ]
+         CalDataModuleLabel: "wclsdatahd:gauss"
+         Chi2NDF: 50
+         FilterHits: false
+         HitFilterAlg: {
+            AlgName: "HitFilterAlg"
+            MinPulseHeight: [
+               5,
+               5,
+               5
+            ]
+            MinPulseSigma: [
+               1,
+               1,
+               1
+            ]
+         }
+         HitFinderToolVec: {
+            CandidateHitsPlane0: {
+               Plane: 0
+               RoiThreshold: 6e-1
+               tool_type: "CandHitStandard"
+            }
+            CandidateHitsPlane1: {
+               Plane: 1
+               RoiThreshold: 6e-1
+               tool_type: "CandHitStandard"
+            }
+            CandidateHitsPlane2: {
+               Plane: 2
+               RoiThreshold: 6e-1
+               tool_type: "CandHitStandard"
+            }
+         }
+         InitWidth: [
+            6,
+            6,
+            6
+         ]
+         LongMaxHits: [
+            25,
+            25,
+            25
+         ]
+         LongPulseWidth: [
+            10,
+            10,
+            10
+         ]
+         MaxMultiHit: 4
+         PeakFitter: {
+            MaxWidthMult: 3
+            MinWidth: 5e-1
+            PeakAmpRange: 2
+            PeakRangeFact: 2
+            tool_type: "PeakFitterMrqdt"
+         }
+         PulseHeightCuts: [
+            3,
+            3,
+            3
+         ]
+         PulseRatioCuts: [
+            3.5e-1,
+            4e-1,
+            2e-1
+         ]
+         PulseWidthCuts: [
+            2,
+            1.5,
+            1
+         ]
+         module_type: "GausHitFinder"
+      }
+      hitpdune: {
+         ExcludeTPCs: []
+         HitModuleLabel: "gaushit"
+         MaxDistance: 1000
+         MonitoringPlots: false
+         MoveLeftovers: "repeat"
+         NumNeighbors: 2
+         SpModuleLabel: "reco3d"
+         UseNeighbors: true
+         module_type: "DisambigFromSpacePoints"
+      }
+      opdec: {
+         ApplyPostBLCorrection: true
+         ApplyPostfilter: true
+         AutoScale: true
+         IgnoreChannels: [
+            -1,
+            86,
+            87,
+            97,
+            107,
+            116,
+            117,
+            147,
+            3,
+            135,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147,
+            148,
+            149,
+            150,
+            151,
+            152,
+            153,
+            154,
+            155,
+            156,
+            157,
+            158,
+            159,
+            35
+         ]
+         InputModule: "pdhddaphne"
+         InputPolarity: -1
+         InstanceName: "daq"
+         LineNoiseRMS: 2.6
+         NoiseTemplateFiles: [
+            "FFT_Noise_Template_run27950_PDHD_VGain2318_sample513_fbk_Dec2024.txt",
+            "FFT_Noise_Template_run27950_PDHD_VGain2318_sample513_hpk_Dec2024.txt"
+         ]
+         NoiseTemplateMapChannels: [
+            4,
+            14,
+            24,
+            34,
+            40,
+            42,
+            45,
+            46,
+            47,
+            49,
+            50,
+            52,
+            55,
+            56,
+            57,
+            59,
+            60,
+            62,
+            65,
+            66,
+            67,
+            69,
+            70,
+            72,
+            75,
+            76,
+            77,
+            79,
+            84,
+            85,
+            86,
+            87,
+            94,
+            95,
+            96,
+            97,
+            104,
+            105,
+            106,
+            107,
+            114,
+            115,
+            116,
+            117,
+            120,
+            121,
+            124,
+            125,
+            127,
+            129,
+            130,
+            131,
+            134,
+            135,
+            137,
+            139,
+            140,
+            141,
+            144,
+            145,
+            147,
+            149,
+            150,
+            151,
+            154,
+            155,
+            157,
+            159,
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            35,
+            36,
+            37,
+            38,
+            39,
+            41,
+            43,
+            44,
+            48,
+            51,
+            53,
+            54,
+            58,
+            61,
+            63,
+            64,
+            68,
+            71,
+            73,
+            74,
+            78,
+            80,
+            81,
+            82,
+            83,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            118,
+            119,
+            122,
+            123,
+            126,
+            128,
+            132,
+            133,
+            136,
+            138,
+            142,
+            143,
+            146,
+            148,
+            152,
+            153,
+            156,
+            158
+         ]
+         NoiseTemplateMapTemplates: [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+         ]
+         NoiseTemplatePath: "ProtoDUNE/HD/opdetresponse/v0/"
+         Pedestal: 8180
+         PedestalBuffer: 30
+         PreTrigger: 50
+         SPETemplateFileDataColumn: 0
+         SPETemplateFiles: [
+            "SPE_Template_run28370_APA4_CH0_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH1_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH2_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH4_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH5_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH6_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH7_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH8_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH9_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH10_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH11_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH12_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH13_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH14_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH15_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH16_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH17_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH18_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH19_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH20_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH21_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH22_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH23_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH24_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH25_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH26_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH27_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH28_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH29_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH30_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH31_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH32_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH33_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH34_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH36_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH37_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH38_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA4_CH39_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH40_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH41_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH42_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH43_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH44_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH45_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH46_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH47_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH48_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH49_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH50_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH51_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH52_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH53_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH54_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH55_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH56_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH57_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH58_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH59_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH60_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH61_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH62_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH63_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH64_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH65_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH66_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH67_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH68_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH69_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH70_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH71_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH72_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH73_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH74_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH75_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH76_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH77_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH78_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28370_APA3_CH79_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH80_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH81_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH82_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH83_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH84_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH85_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH88_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH89_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH90_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH91_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH92_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH93_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH94_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH95_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH96_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH98_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH99_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH100_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH101_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH102_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH103_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH104_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH105_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH106_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH108_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH109_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH110_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH111_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH112_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH113_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH114_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH115_PDHD_fbk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH118_PDHD_hpk_Nov2024.txt",
+            "SPE_Template_run28492_APA2_CH119_PDHD_hpk_Nov2024.txt"
+         ]
+         SPETemplateMapChannels: [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            115,
+            118,
+            119
+         ]
+         SPETemplateMapTemplates: [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111
+         ]
+         SPETemplatePath: "ProtoDUNE/HD/opdetresponse/v0/"
+         Samples: 1024
+         Scale: 1
+         WfmFilter: {
+            Cutoff: 1
+            Name: "Wiener"
+         }
+         WfmPostfilter: {
+            Cutoff: 1.5
+            Name: "Gauss"
+         }
+         module_type: "Deconvolution"
+      }
+      opflash: {
+         BinWidth: 1
+         FlashThreshold: 3.5
+         InputModule: "ophitspe"
+         TrigCoinc: 2.5
+         WidthTolerance: 5e-1
+         module_type: "OpFlashFinder"
+      }
+      ophitspe: {
+         AreaToPE: true
+         ChannelMasks: []
+         GenModule: "generator"
+         HitAlgoPset: {
+            ADCThreshold: 3
+            EndADCThreshold: 1
+            EndNSigmaThreshold: 1
+            MinPulseWidth: 1
+            NSigmaThreshold: 1
+            Name: "SlidingWindow"
+            NumPostSample: 2
+            NumPreSample: 2
+            PositivePolarity: true
+            TailADCThreshold: 1
+            TailNSigmaThreshold: 1
+            Verbosity: false
+         }
+         HitThreshold: 3
+         InputDigiType: "recob"
+         InputLabels: [
+            ""
+         ]
+         InputModule: "opdec"
+         InputModuledigi: "pdhddaphne:daq"
+         PedAlgoPset: {
+            Method: 0
+            Name: "Edges"
+            NumSampleFront: 3
+            NumSampleTail: 3
+         }
+         SPEArea: 100
+         SPEShift: 0
+         ScalingFactor: 100
+         UseCalibrator: false
+         module_type: "OpHitFinderDeco"
+         reco_man: {
+            module_type: "PulseRecoManager"
+         }
+      }
+      opslicer: {
+         BreakTime: "5"
+         MinN: "3"
+         OpHitModuleLabel: "ophitspe"
+         R0: "1"
+         RScale: "600"
+         TScale: "0.15"
+         TrigCoinc: "2.5"
+         module_type: "OpSlicer"
+      }
+      pandora: {
+         ConfigFile: "PandoraSettings_Master_ProtoDUNE_HD_TwoView_APA1.xml"
+         EnableLineGaps: true
+         EnableMCParticles: false
+         EnableProduction: true
+         GeantModuleLabel: "largeant"
+         HitFinderModuleLabel: "hitpdune"
+         PrintOverallRecoStatus: false
+         ShouldPerformSliceId: true
+         ShouldRunAllHitsCosmicReco: true
+         ShouldRunCosmicHitRemoval: true
+         ShouldRunCosmicRecoOption: true
+         ShouldRunNeutrinoRecoOption: true
+         ShouldRunSlicing: true
+         ShouldRunStitching: true
+         UseGlobalCoordinates: true
+         UseHitWidths: true
+         module_type: "StandardPandora"
+      }
+      pandoraGnocchiCalo: {
+         AssocHitModuleLabel: "pandoraTrack"
+         CaloAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               1e-3,
+               1e-3,
+               1e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         ChargeMethod: 2
+         Cryostat: 0
+         FieldDistortion: true
+         FieldDistortionCorrectionXSign: 1
+         FieldDistortionEfield: true
+         NormTools: []
+         PFPModuleLabel: "pandora"
+         T0ModuleLabel: "pandora"
+         TrackIsFieldDistortionCorrected: false
+         TrackModuleLabel: "pandoraTrack"
+         module_type: "GnocchiCalorimetry"
+      }
+      pandoraGnocchiCalonosce: {
+         AssocHitModuleLabel: "pandoraTrack"
+         CaloAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               1e-3,
+               1e-3,
+               1e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         ChargeMethod: 2
+         Cryostat: 0
+         FieldDistortion: false
+         FieldDistortionCorrectionXSign: 1
+         FieldDistortionEfield: false
+         NormTools: []
+         PFPModuleLabel: "pandora"
+         T0ModuleLabel: "pandora"
+         TrackIsFieldDistortionCorrected: false
+         TrackModuleLabel: "pandoraTrack"
+         module_type: "GnocchiCalorimetry"
+      }
+      pandoraShower: {
+         PFParticleLabel: "pandora"
+         module_type: "LArPandoraShowerCreation"
+      }
+      pandoraShowercalo: {
+         CalorimetryAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               1e-3,
+               1e-3,
+               1e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         CorrectSCE: true
+         ShowerTag: "pandoraShower"
+         SpacePointTag: "pandora"
+         module_type: "ShowerCalorimetry"
+      }
+      pandoraShowercalonosce: {
+         CalorimetryAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               1e-3,
+               1e-3,
+               1e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         CorrectSCE: false
+         ShowerTag: "pandoraShower"
+         SpacePointTag: "pandora"
+         module_type: "ShowerCalorimetry"
+      }
+      pandoraTrack: {
+         PFParticleLabel: "pandora"
+         module_type: "LArPandoraTrackCreation"
+      }
+      pandoraWriter: {
+         ConfigFile: "PandoraSettings_Write.xml"
+         EnableLineGaps: true
+         EnableMCParticles: true
+         EnableProduction: false
+         GeantModuleLabel: "largeant"
+         HitFinderModuleLabel: "hitpdune"
+         PrintOverallRecoStatus: false
+         ShouldPerformSliceId: false
+         ShouldRunAllHitsCosmicReco: false
+         ShouldRunCosmicHitRemoval: false
+         ShouldRunCosmicRecoOption: false
+         ShouldRunNeutrinoRecoOption: false
+         ShouldRunSlicing: false
+         ShouldRunStitching: false
+         UseGlobalCoordinates: true
+         UseHitWidths: true
+         module_type: "StandardPandora"
+      }
+      pandoracalo: {
+         CaloAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               1e-3,
+               1e-3,
+               1e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         CorrectSCE: true
+         FlipTrack_dQdx: false
+         MakeTree: false
+         SpacePointModuleLabel: "pandora"
+         T0ModuleLabel: ""
+         TrackModuleLabel: "pandoraTrack"
+         UseArea: true
+         module_type: "Calorimetry"
+      }
+      pandoracalonosce: {
+         CaloAlg: {
+            CalAmpConstants: [
+               5.82554e-4,
+               1.16594e-3
+            ]
+            CalAreaConstants: [
+               1e-3,
+               1e-3,
+               1e-3
+            ]
+            CaloDoLifeTimeCorrection: false
+            CaloLifeTimeForm: 0
+            CaloUseModBox: true
+         }
+         CorrectSCE: false
+         FlipTrack_dQdx: false
+         MakeTree: false
+         SpacePointModuleLabel: "pandora"
+         T0ModuleLabel: ""
+         TrackModuleLabel: "pandoraTrack"
+         UseArea: true
+         module_type: "Calorimetry"
+      }
+      pandorapid: {
+         CalorimetryModuleLabel: "pandoracalo"
+         Chi2PIDAlg: {
+            TemplateFile: "dEdxrestemplates.root"
+            UseMedian: true
+         }
+         TrackModuleLabel: "pandoraTrack"
+         module_type: "Chi2ParticleID"
+      }
+      pdhddaphne: {
+         DAPHNEInterface: {
+            tool_type: "DAPHNEInterface2"
+         }
+         InputLabel: "daq"
+         OutputLabel: "daq"
+         module_type: "DAPHNEReaderPDHD"
+      }
+      reco3d: {
+         AllowBadCollectionHit: true
+         AllowBadInductionHit: true
+         Alpha: 5e-2
+         Fit: true
+         HitLabel: "gaushit"
+         HitReaderTool: {
+            tool_type: "HitsStandard"
+         }
+         MaxIterationsNoReg: 100
+         MaxIterationsReg: 100
+         MaxNTriplets: 0
+         MinNHits: 20
+         WireIntersectThreshold: 3e-1
+         WireIntersectThresholdDriftDir: 3e-1
+         XHitOffset: 0
+         module_type: "SpacePointSolver"
+      }
+      timingrawdecoder: {
+         OutputLabel: "daq"
+         module_type: "PDHDTimingRawDecoder"
+      }
+      tpcrawdecoder: {
+         APAList: [
+            1,
+            2,
+            3,
+            4
+         ]
+         DecoderToolParams: {
+            DebugLevel: 0
+            DefaultCrate: 1
+            FileInfoLabel: "daq"
+            MaxChan: 1e7
+            SubDetectorString: "HD_TPC"
+            tool_type: "PDHDDataInterfaceWIBEth3"
+         }
+         InputLabel: "daq"
+         OutputInstance: "daq"
+         OutputStatusTree: true
+         module_type: "PDHDTPCReader"
+      }
+      triggerrawdecoder: {
+         InputLabel: "daq"
+         OutputInstance: "daq"
+         module_type: "PDHDTriggerReader3"
+      }
+      wclsdatahd: {
+         module_type: "WireCellToolkit"
+         wcls_main: {
+            apps: [
+               "Pgrapher"
+            ]
+            configs: [
+               "pgrapher/experiment/pdhd/wcls-rawdigit-dnnsp.jsonnet"
+            ]
+            inputers: [
+               "wclsRawFrameSource"
+            ]
+            outputers: [
+               "wclsFrameSaver:spsaver",
+               "wclsFrameSaver:dnnsaver"
+            ]
+            params: {
+               raw_input_label: "wclsdatahdfilter:raw"
+               reality: "data"
+               signal_output_form: "dense"
+            }
+            plugins: [
+               "WireCellPgraph",
+               "WireCellGen",
+               "WireCellSio",
+               "WireCellSigProc",
+               "WireCellRoot",
+               "WireCellLarsoft",
+               "WireCellHio",
+               "WireCellTbb",
+               "WireCellImg",
+               "WireCellPytorch"
+            ]
+            structs: {
+               Nbit: 14
+               clock_speed: 1.953125
+               elecGain: 14
+            }
+            tool_type: "WCLS"
+         }
+      }
+   }
+   trigger_paths: [
+      "produce"
+   ]
+}
+process_name: "pdhdkeepupstage2"
+services: {
+   AuxDetGeometry: {
+      GDML: "protodunehd_v6_refactored.gdml"
+      Name: "protodunehdv6"
+   }
+   BackTrackerService: {
+      BackTracker: {
+         G4ModuleLabel: "largeant"
+         MinimumHitEnergyFraction: 1e-1
+         SimChannelModuleLabel: "tpcrawdecoder:simpleSC"
+      }
+   }
+   ChannelStatusService: {
+      BadChannels: []
+      NoisyChannels: []
+      service_provider: "SimpleChannelStatusService"
+   }
+   DAPHNEChannelMapService: {
+      FileName: "DAPHNE_test5_ChannelMap_v1.txt"
+   }
+   DatabaseUtil: {
+      DBHostName: "fnalpgsdev.fnal.gov"
+      DBName: "dune_dev"
+      DBUser: "dune_reader"
+      PassFileName: ".lpswd"
+      Port: 5438
+      ShouldConnect: false
+      TableName: "main_run"
+      ToughErrorTreatment: false
+   }
+   DetectorClocksService: {
+      ClockSpeedExternal: 3.125e1
+      ClockSpeedOptical: 6.25e1
+      ClockSpeedTPC: 1.953125
+      ClockSpeedTrigger: 16
+      DefaultBeamTime: 250
+      DefaultTrigTime: 250
+      FramePeriod: 1600
+      G4RefTime: -250
+      InheritClockConfig: false
+      TrigModuleName: ""
+      TriggerOffsetTPC: -250
+      service_provider: "DetectorClocksServiceStandard"
+   }
+   DetectorPropertiesService: {
+      DriftVelFudgeFactor: 1
+      Efield: [
+         4.867e-1,
+         6.66e-1,
+         8e-1
+      ]
+      Electronlifetime: 35000
+      ElectronsToADC: 6.8906513e-3
+      IncludeInterPlanePitchInXTickOffsets: true
+      NumberTimeSamples: 5859
+      ReadOutWindowSize: 5859
+      SimpleBoundaryProcess: true
+      SternheimerA: 1.956e-1
+      SternheimerCbar: 5.2146
+      SternheimerK: 3
+      SternheimerX0: 2e-1
+      SternheimerX1: 3
+      Temperature: 8.768e1
+      TimeOffsetU: 0
+      TimeOffsetV: 0
+      TimeOffsetZ: 0
+      UseIcarusMicrobooneDriftModel: false
+      service_provider: "DetectorPropertiesServiceStandard"
+   }
+   FileCatalogMetadata: {
+      applicationFamily: "art"
+      applicationVersion: "development"
+      fileType: "data"
+      group: "dune"
+      runType: "physics"
+   }
+   Geometry: {
+      GDML: "protodunehd_v6_refactored.gdml"
+      Name: "protodunehdv6"
+      SortingParameters: {
+         tool_type: "GeoObjectSorterAPA"
+      }
+      SurfaceY: 147828
+   }
+   GeometryConfigurationWriter: {}
+   HDF5RawFile3Service: {}
+   IFDH: {}
+   LArFFT: {
+      FFTOption: ""
+      FFTSize: 0
+      FitBins: 5
+   }
+   LArPropertiesService: {
+      AbsLengthEnergies: [
+         4,
+         5,
+         6,
+         7,
+         8,
+         9,
+         10,
+         11
+      ]
+      AbsLengthSpectrum: [
+         8000,
+         8000,
+         8000,
+         8000,
+         8000,
+         2000,
+         2000,
+         2000
+      ]
+      AlphaScintYield: 16800
+      AlphaScintYieldRatio: 5.6e-1
+      Argon39DecayRate: 0
+      AtomicMass: 3.9948e1
+      AtomicNumber: 18
+      ElectronScintYield: 20000
+      ElectronScintYieldRatio: 2.7e-1
+      EnableCerenkovLight: false
+      ExcitationEnergy: 188
+      FastScintEnergies: [
+         7.2,
+         7.9,
+         8.3,
+         8.6,
+         8.9,
+         9.1,
+         9.3,
+         9.6,
+         9.7,
+         9.8,
+         10,
+         1.02e1,
+         1.03e1,
+         1.06e1,
+         11,
+         1.16e1,
+         1.19e1
+      ]
+      FastScintSpectrum: [
+         0,
+         4e-2,
+         1.2e-1,
+         2.7e-1,
+         4.4e-1,
+         6.2e-1,
+         8e-1,
+         9.1e-1,
+         9.2e-1,
+         8.5e-1,
+         7e-1,
+         5e-1,
+         3.1e-1,
+         1.3e-1,
+         4e-2,
+         1e-2,
+         0
+      ]
+      KaonScintYield: 24000
+      KaonScintYieldRatio: 2.3e-1
+      LoadExtraMatProperties: true
+      MuonScintYield: 24000
+      MuonScintYieldRatio: 2.3e-1
+      PionScintYield: 24000
+      PionScintYieldRatio: 2.3e-1
+      ProtonScintYield: 19200
+      ProtonScintYieldRatio: 2.9e-1
+      RIndexEnergies: [
+         1.18626,
+         1.68626,
+         2.18626,
+         2.68626,
+         3.18626,
+         3.68626,
+         4.18626,
+         4.68626,
+         5.18626,
+         5.68626,
+         6.18626,
+         6.68626,
+         7.18626,
+         7.68626,
+         8.18626,
+         8.68626,
+         9.18626,
+         9.68626,
+         1.01863e1,
+         1.06863e1,
+         1.11863e1
+      ]
+      RIndexSpectrum: [
+         1.24664,
+         1.2205,
+         1.22694,
+         1.22932,
+         1.23124,
+         1.23322,
+         1.23545,
+         1.23806,
+         1.24116,
+         1.24489,
+         1.24942,
+         1.25499,
+         1.26197,
+         1.2709,
+         1.28263,
+         1.29865,
+         1.32169,
+         1.35747,
+         1.42039,
+         1.56011,
+         2.16626
+      ]
+      RadiationLength: 1.955e1
+      RayleighEnergies: [
+         1.18626,
+         1.68626,
+         2.18626,
+         2.68626,
+         3.18626,
+         3.68626,
+         4.18626,
+         4.68626,
+         5.18626,
+         5.68626,
+         6.18626,
+         6.68626,
+         7.18626,
+         7.68626,
+         8.18626,
+         8.68626,
+         9.18626,
+         9.68626,
+         1.01863e1,
+         1.06863e1,
+         1.11863e1
+      ]
+      RayleighSpectrum: [
+         1.2008e6,
+         390747,
+         128633,
+         5.49691e4,
+         2.71918e4,
+         1.48537e4,
+         8.7169e3,
+         5.39742e3,
+         3.48137e3,
+         2.31651e3,
+         1.57763e3,
+         1.09202e3,
+         7.63045e2,
+         5.34232e2,
+         3.71335e2,
+         2.52942e2,
+         1.6538e2,
+         9.99003e1,
+         5.12653e1,
+         1.7495e1,
+         9.64341e-1
+      ]
+      ReflectiveSurfaceDiffuseFractions: [
+         [
+            5e-1,
+            5e-1,
+            5e-1
+         ]
+      ]
+      ReflectiveSurfaceEnergies: [
+         7,
+         9,
+         10
+      ]
+      ReflectiveSurfaceNames: [
+         "STEEL_STAINLESS_Fe7Cr2Ni"
+      ]
+      ReflectiveSurfaceReflectances: [
+         [
+            2.5e-1,
+            2.5e-1,
+            2.5e-1
+         ]
+      ]
+      ScintBirksConstant: 6.9e-2
+      ScintByParticleType: false
+      ScintFastTimeConst: 6
+      ScintPreScale: 5e-2
+      ScintResolutionScale: 1
+      ScintSlowTimeConst: 1590
+      ScintYield: 24000
+      ScintYieldRatio: 2.3e-1
+      SlowScintEnergies: [
+         7.2,
+         7.9,
+         8.3,
+         8.6,
+         8.9,
+         9.1,
+         9.3,
+         9.6,
+         9.7,
+         9.8,
+         10,
+         1.02e1,
+         1.03e1,
+         1.06e1,
+         11,
+         1.16e1,
+         1.19e1
+      ]
+      SlowScintSpectrum: [
+         0,
+         4e-2,
+         1.2e-1,
+         2.7e-1,
+         4.4e-1,
+         6.2e-1,
+         8e-1,
+         9.1e-1,
+         9.2e-1,
+         8.5e-1,
+         7e-1,
+         5e-1,
+         3.1e-1,
+         1.3e-1,
+         4e-2,
+         1e-2,
+         0
+      ]
+      TpbAbsorptionEnergies: [
+         5e-2,
+         1.77,
+         2.0675,
+         7.42,
+         7.75,
+         8.16,
+         8.73,
+         9.78,
+         1.069e1,
+         5.039e1
+      ]
+      TpbAbsorptionSpectrum: [
+         100000,
+         100000,
+         100000,
+         1e-3,
+         1e-11,
+         1e-11,
+         1e-11,
+         1e-11,
+         1e-11,
+         1e-11
+      ]
+      TpbEmmisionEnergies: [
+         5e-2,
+         1,
+         1.5,
+         2.25,
+         2.481,
+         2.819,
+         2.952,
+         2.988,
+         3.024,
+         3.1,
+         3.14,
+         3.1807,
+         3.54,
+         5.5,
+         5.039e1
+      ]
+      TpbEmmisionSpectrum: [
+         0,
+         0,
+         0,
+         5.88e-2,
+         2.35e-1,
+         8.53e-1,
+         1,
+         1,
+         9.259e-1,
+         7.04e-1,
+         2.96e-2,
+         1.1e-2,
+         0,
+         0,
+         0
+      ]
+      TpbTimeConstant: 2.5
+      service_provider: "LArPropertiesServiceStandard"
+   }
+   MemoryTracker: {
+      dbOutput: {
+         filename: "mem.db"
+         overwrite: true
+      }
+      includeMallocInfo: true
+   }
+   PD2HDChannelMapService: {
+      FileName: "PD2HDChannelMap_WIBEth_visiblewires_v1.txt"
+   }
+   ParticleInventoryService: {
+      ParticleInventory: {
+         EveIdCalculator: "EmEveIdCalculator"
+         G4ModuleLabel: "largeant"
+      }
+   }
+   PhotonBackTrackerService: {
+      PhotonBackTracker: {
+         Delay: 260
+         G4ModuleLabel: "largeant"
+         MinimumHitEnergyFraction: 1e-1
+      }
+   }
+   RandomNumberGenerator: {}
+   SpaceCharge: {
+      CalibrationInputFilename: "ProtoDUNE/HD/SpaceCharge/Sim_NoFluidFlow/v2/SCE_PDHD_Sim_NoFluidFlow_E500_v2.root"
+      EDAXPosOffs: []
+      EDBZPosOffs: []
+      EDChargeLossZHigh: []
+      EDChargeLossZLow: []
+      EDZCenter: []
+      EDs: []
+      EnableCalEfieldSCE: true
+      EnableCalSpatialSCE: true
+      EnableCorrSCE: true
+      EnableElectronDiverterDistortions: []
+      EnableSimEfieldSCE: true
+      EnableSimSpatialSCE: true
+      EnableSimulationSCE: true
+      InputFilename: "ProtoDUNE/HD/SpaceCharge/Sim_NoFluidFlow/v2/SCE_PDHD_Sim_NoFluidFlow_E500_v2.root"
+      RepresentationType: "Splines_TH3"
+      service_provider: "SpaceChargeServiceProtoDUNEhd"
+   }
+   TFileService: {
+      fileName: "%ifb_%tc_keepup_hists.root"
+   }
+   TimeTracker: {
+      dbOutput: {
+         filename: "time.db"
+         overwrite: true
+      }
+      printSummary: true
+   }
+   WireReadout: {
+      ChannelsPerOpDet: 1
+      service_provider: "DUNEWireReadout"
+   }
+   message: {
+      debugModules: [
+         "*"
+      ]
+      destinations: {
+         LogDebugFile: {
+            append: false
+            categories: {
+               default: {
+                  limit: 0
+               }
+            }
+            filename: "debugprod.log"
+            threshold: "DEBUG"
+            type: "file"
+         }
+         LogStandardError: {
+            categories: {
+               default: {}
+}
+            threshold: "ERROR"
+            type: "cerr"
+}
+         LogStandardOut: {
+            categories: {
+               ArtReport: {
+                  limit: -1
+               }
+               default: {
+                  limit: 0
+               }
+            }
+            threshold: "INFO"
+            type: "cout"
+         }
+      }
+   }
+}
+source: {
+   fileNames: [
+      "reco_stage2_protodunehd.root"
+   ]
+   maxEvents: 30000
+   module_type: "RootInput"
+}
