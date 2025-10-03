@@ -23,6 +23,7 @@
 // local epoch = std.extVar('epoch');  // eg "dynamic", "after", "before", "perfect"
 local reality = std.extVar('reality');
 local sigoutform = std.extVar('signal_output_form');  // eg "sparse" or "dense"
+local save_tradsp = false;
 
 local wc = import 'wirecell.jsonnet';
 local g = import 'pgrapher/common/pgraph.jsonnet'; // FIXME: use system-wide pgraph.jsonnet
@@ -297,7 +298,7 @@ local ts = {
         // model: "ts-model/CP28_transformer_rebin10_lr0p1_th100_UV.ts",
         // model: "ts-model/CP49_mobilenetv2_rebin10_lr0p1_thr100_UV.ts",
         // model: "ts-model/CP49_mobilenetv3_rebin10_lr0p1_thr100_U.ts",
-        // model: "ts-model/CP49_mobilenetv3_rebin10_lr0p1_thr100_UV.ts",
+        model: "ts-model/CP49_mobilenetv3_rebin10_lr0p1_thr100_UV.ts",
 
         // model: "ts-model/CP49_mobilenetv3_rebin1_lr0p1_thr10_U.ts",
         // model: "ts-model/CP49_mobilenetv3_rebin1_lr0p1_thr100_U.ts",
@@ -306,7 +307,7 @@ local ts = {
         // model: "ts-model/CP49_mobilenetv3_rebin6_lr0p1_thr10_U.ts",
         // model: "ts-model/CP49_mobilenetv3_rebin6_lr0p1_thr100_U.ts",
         // model: "ts-model/CP49_mobilenetv3_rebin10_lr0p1_thr10.ts",
-        model: "ts-model/CP49_mobilenetv3_rebin10_lr0p1_thr100_U.ts",
+        // model: "ts-model/CP49_mobilenetv3_rebin10_lr0p1_thr100_U.ts",
         
         // model: "ts-model/CP39_mobilenetv3_rebin4_pad4mr1_lr0p1_thr100_UV.ts",
         device: "cpu", // "gpucpu",
@@ -403,7 +404,12 @@ local outgr = g.pipeline([ofanin, outretagger, wcls_output.sp_signals, osink]);
 local edge_selector(e) = std.startsWith(e.tail.node, "OmnibusSigProc:");
 local fanout_factory(n,e) = { type:'FrameFanout', name:"splice%d"%n, data:{multiplicity: 2} }; // "2-wire" splice
 
-local spliced_graph = g.splice(graph, outgr, edge_selector, fanout_factory);
+local spliced_graph =
+if save_tradsp then
+    g.splice(graph, outgr, edge_selector, fanout_factory)
+else
+    graph
+;
 
 local app = {
   type: 'Pgrapher',
