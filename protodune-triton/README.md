@@ -1,6 +1,7 @@
 Tested with `dunesw v10_05_00d00`
 
 ```bash
+source /exp/dune/app/users/yuhw/wct/setup.sh
 path-prepend /exp/dune/app/users/yuhw/wct-ci/protodune-triton/cfg WIRECELL_PATH
 ```
 
