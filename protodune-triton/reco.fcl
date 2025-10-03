@@ -321,8 +321,7 @@ physics: {
                "wclsRawFrameSource"
             ]
             loglevels: [
-               "debug",
-               "pgraph:info"
+               "debug"
             ]
             logsinks: [
                "stdout"
