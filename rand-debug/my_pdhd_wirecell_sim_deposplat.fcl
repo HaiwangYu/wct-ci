@@ -356,8 +356,14 @@ physics: {
                "Pgrapher"
                // "TbbFlow"
             ]
+            logsinks: [
+               "stdout"
+            ]
+            loglevels: [
+               "debug"
+            ]
             configs: [
-               "pgrapher/experiment/pdhd/wcls-sim-drift-deposplat_tbb.jsonnet"
+               "wcls-sim-drift-deposplat_tbb.jsonnet"
             ]
             inputers: [
                "wclsSimDepoSource:"
@@ -385,7 +391,7 @@ physics: {
       }
    }
    reco: [
-      "rns",
+      # "rns",
       "wirecell"
    ]
    stream1: [

@@ -70,12 +70,19 @@ local wcls_output = {
 
 //local deposio = io.numpy.depos(output);
 local drifter = sim.drifter;
+local setdrifter = g.pnode({
+            type: 'DepoSetDrifter',
+            data: {
+                drifter: "Drifter"
+            }
+        }, nin=1, nout=1,
+        uses=[drifter]);
 // local bagger = sim.make_bagger();
 local bagger = [sim.make_bagger("bagger%d"%n) for n in anode_iota];
 
 // signal plus noise pipelines
-//local sn_pipes = sim.signal_pipelines;
-local sn_pipes = sim.splusn_pipelines;
+local sn_pipes = sim.signal_pipelines;
+// local sn_pipes = sim.splusn_pipelines;
 
 // local perfect = import 'pgrapher/experiment/pdhd/chndb-perfect.jsonnet';
 local base = import 'pgrapher/experiment/pdhd/chndb-base.jsonnet';
@@ -304,19 +311,20 @@ local reco_fork = [
               // wcls_simchannel_sink[n],
               bagger[n],
               sn_pipes[n],
+              mgio.orig_pipe[n],
               // hio_orig[n],
-              nf_pipes[n],
-              mgio.raw_pipe[n],
+              // nf_pipes[n],
+              // mgio.raw_pipe[n],
               // mgio.orig_pipe[n],
-              sp_pipes[n],
-              hio_sp[n],
-              mgio.debug_pipe[n],
-              mgio.decon_pipe[n],
+              // sp_pipes[n],
+              // hio_sp[n],
+              // mgio.debug_pipe[n],
+              // mgio.decon_pipe[n],
 
               //dnnroi(tools.anodes[n], ts, output_scale=1.2),
-              dnnroi(tools.anodes[n], ts, output_scale=1.0),
-              hio_dnn[n],
-              mgio.dnnsp_pipe[n],
+              // dnnroi(tools.anodes[n], ts, output_scale=1.0),
+              // hio_dnn[n],
+              // mgio.dnnsp_pipe[n],
               g.pnode({ type: 'DumpFrames', name: 'reco_fork%d'%n }, nin=1, nout=0),
               // perapa_img_pipelines[n],
              ],
@@ -327,8 +335,8 @@ local reco_fork = [
 local truth_fork = [
   g.pipeline([
                deposplats[n],
-               hio_truth[n],
-               mgio.truth_pipe[n],
+               // hio_truth[n],
+               // mgio.truth_pipe[n],
                g.pnode({ type: 'DumpFrames', name: 'truth_fork%d'%n  }, nin=1, nout=0)
              ],
              'truth_fork%d' % n)
@@ -357,10 +365,7 @@ local multipass = [g.intern(innodes=[depo_fanout[n]], centernodes=[truth_fork[n]
                        g.edge(depo_fanout[n], truth_fork[n],  0, 0),
                        g.edge(depo_fanout[n], reco_fork[n],   1, 0)]) for n in anode_iota];
 
-// local multipass = [reco_fork[n] for n in anode_iota];
-
 local outtags = ['orig%d' % n for n in anode_iota];
-// local bi_manifold = f.fanpipe('DepoFanout', multipass, 'FrameFanin', 'sn_mag_nf', outtags);
 
 
 local depo_fanout_1st = g.pnode({
@@ -397,14 +402,23 @@ local retagger = g.pnode({
 local sink = sim.frame_sink;
 
 // g4 sim as input
-local graph = g.intern(innodes=[wcls_input.depos], centernodes=[drifter, depo_fanout_1st]+multipass, outnodes=[],
-                      edges = 
-                      [
-                        g.edge(wcls_input.depos, drifter, 0, 0),
-                        g.edge(drifter, depo_fanout_1st, 0, 0),
-                      ] +
-                      [g.edge(depo_fanout_1st, multipass[n],  n, 0) for n in anode_iota],
-                      );
+local add_truth = false;
+local graph = 
+if add_truth then
+  g.intern(innodes=[wcls_input.depos], centernodes=[drifter, depo_fanout_1st]+multipass, outnodes=[],
+    edges = 
+    [
+      g.edge(wcls_input.depos, drifter, 0, 0),
+      g.edge(drifter, depo_fanout_1st, 0, 0),
+    ] +
+    [g.edge(depo_fanout_1st, multipass[n],  n, 0) for n in anode_iota],
+  )
+else (
+  local multipass = [reco_fork[n] for n in anode_iota];
+  local bi_manifold = g.fan.fanout('DepoFanout', multipass, 'bi_manifold');
+  g.pipeline([wcls_input.depos, drifter, bi_manifold])
+);
+
 local app = {
   // type: 'TbbFlow',
   type: 'Pgrapher',
