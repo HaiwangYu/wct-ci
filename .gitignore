@@ -4,4 +4,9 @@
 *log
 *.db
 *.sh
+*.DS_Store
+*.swp
+*.h5
+*.png
+*.pptx
 cfg
