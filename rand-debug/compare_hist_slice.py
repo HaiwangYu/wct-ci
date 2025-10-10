@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Compare a 1D slice along the Y axis from a 2D histogram stored in two ROOT files.
+Compare a 1D slice along the Y axis from a 2D histogram stored in one or more ROOT files.
 
 Defaults target the protodune datasets given in the cheatsheet, but everything may be
 customised via CLI flags.
@@ -9,8 +9,9 @@ customised via CLI flags.
 from __future__ import annotations
 
 import argparse
+from itertools import cycle
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,19 +22,21 @@ def parse_args() -> argparse.Namespace:
     base_dir = Path(__file__).resolve().parent
 
     parser = argparse.ArgumentParser(
-        description="Compare a Y-axis slice of a 2D histogram from two ROOT files."
+        description="Compare a Y-axis slice of a 2D histogram from multiple ROOT files."
     )
     parser.add_argument(
-        "--file-a",
+        "--files",
         type=Path,
-        default=base_dir / "test11" / "magnify-protodunehd_hk.root",
-        help="Path to the first ROOT file (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--file-b",
-        type=Path,
-        default=base_dir / "test12" / "magnify-protodunehd_hk.root",
-        help="Path to the second ROOT file (default: %(default)s)",
+        nargs="+",
+        default=[
+            # base_dir / "test5" / "magnify-protodunehd_hk.root",
+            # base_dir / "test6" / "magnify-protodunehd_hk.root",
+            # base_dir / "test11" / "magnify-protodunehd_hk.root",
+            # base_dir / "test12" / "magnify-protodunehd_hk.root",
+            base_dir / "test13.root",
+            base_dir / "test14.root",
+        ],
+        help="List of ROOT files to include in the comparison (default paths inside rand-debug)",
     )
     parser.add_argument(
         "--hist-name",
@@ -114,15 +117,33 @@ def main() -> None:
     args = parse_args()
     tick_bounds = (args.tick_min, args.tick_max)
 
-    y_a, slice_a = load_histogram_slice(args.file_a, args.hist_name, args.channel, tick_bounds)
-    y_b, slice_b = load_histogram_slice(args.file_b, args.hist_name, args.channel, tick_bounds)
+    if not args.files:
+        raise ValueError("Provide at least one ROOT file via --files to perform a comparison.")
 
-    if not np.allclose(y_a, y_b):
-        raise RuntimeError("Y bin centers differ between the two histograms; cannot compare slices.")
+    y_ref: np.ndarray | None = None
+    slices: List[Tuple[Path, np.ndarray]] = []
+
+    for file_path in args.files:
+        y_vals, slice_vals = load_histogram_slice(
+            file_path, args.hist_name, args.channel, tick_bounds
+        )
+        if y_ref is None:
+            y_ref = y_vals
+        elif not np.allclose(y_ref, y_vals):
+            raise RuntimeError(
+                f"Y bin centers differ between histograms. "
+                f"Mismatch detected for {file_path}."
+            )
+        slices.append((file_path, slice_vals))
+
+    assert y_ref is not None  # for mypy-like tools
 
     plt.figure(figsize=(8, 5))
-    plt.plot(y_a, slice_a, label=f"{args.file_a.name}", marker="o", linestyle="-")
-    plt.plot(y_b, slice_b, label=f"{args.file_b.name}", marker="s", linestyle="--")
+
+    marker_cycle = cycle(["o", "s", "^", "D", "v", "P", "X"])
+    for file_path, slice_vals in slices:
+        marker = next(marker_cycle)
+        plt.plot(y_ref, slice_vals, label=file_path.name, marker=marker, linestyle="-")
 
     plt.title(
         f"{args.hist_name} slice @ channel {args.channel} "
