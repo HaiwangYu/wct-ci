@@ -27,6 +27,16 @@ local wcls_maker = import "pgrapher/ui/wcls/nodes.jsonnet";
 local wcls = wcls_maker(params, tools);
 local wcls_input = {
     depos: wcls.input.depos(name="", art_tag="IonAndScint"),
+    deposet: g.pnode({
+            type: 'wclsSimDepoSetSource',
+            name: "", 
+            data: {
+                model: "", 
+                scale: -1, //scale is -1 to correct a sign error in the SimDepoSource converter.
+                art_tag: "IonAndScint", //name of upstream art producer of depos "label:instance:processName"
+                assn_art_tag: "", 
+            },
+        }, nin=0, nout=1),
 };
 
 local mega_anode = {
@@ -70,19 +80,12 @@ local wcls_output = {
 
 //local deposio = io.numpy.depos(output);
 local drifter = sim.drifter;
-local setdrifter = g.pnode({
-            type: 'DepoSetDrifter',
-            data: {
-                drifter: "Drifter"
-            }
-        }, nin=1, nout=1,
-        uses=[drifter]);
 // local bagger = sim.make_bagger();
 local bagger = [sim.make_bagger("bagger%d"%n) for n in anode_iota];
 
 // signal plus noise pipelines
-local sn_pipes = sim.signal_pipelines;
-// local sn_pipes = sim.splusn_pipelines;
+// local sn_pipes = sim.signal_pipelines;
+local sn_pipes = sim.splusn_pipelines;
 
 // local perfect = import 'pgrapher/experiment/pdhd/chndb-perfect.jsonnet';
 local base = import 'pgrapher/experiment/pdhd/chndb-base.jsonnet';
@@ -309,7 +312,6 @@ local ts = {
 local reco_fork = [
   g.pipeline([
               // wcls_simchannel_sink[n],
-              bagger[n],
               sn_pipes[n],
               mgio.orig_pipe[n],
               // hio_orig[n],
@@ -415,8 +417,15 @@ if add_truth then
   )
 else (
   local multipass = [reco_fork[n] for n in anode_iota];
-  local bi_manifold = g.fan.fanout('DepoFanout', multipass, 'bi_manifold');
-  g.pipeline([wcls_input.depos, drifter, bi_manifold])
+  local bi_manifold = g.fan.fanout('DepoSetFanout', multipass, 'bi_manifold');
+  local setdrifter = g.pnode({
+              type: 'DepoSetDrifter',
+              data: {
+                  drifter: "Drifter"
+              }
+          }, nin=1, nout=1,
+          uses=[drifter]);
+  g.pipeline([wcls_input.deposet, setdrifter, bi_manifold])
 );
 
 local app = {

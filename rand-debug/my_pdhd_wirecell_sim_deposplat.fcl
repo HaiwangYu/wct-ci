@@ -366,7 +366,7 @@ physics: {
                "wcls-sim-drift-deposplat_tbb.jsonnet"
             ]
             inputers: [
-               "wclsSimDepoSource:"
+               "wclsSimDepoSetSource:"
             ]
             outputers: []
             params: {}
