@@ -1,0 +1,339 @@
+[
+   {
+      "data": {
+         "art_tag": "IonAndScint",
+         "assn_art_tag": "",
+         "model": "",
+         "scale": -1
+      },
+      "name": "",
+      "type": "wclsSimDepoSetSource"
+   },
+   {
+      "data": {
+         "generator": "default",
+         "seeds": [
+            0,
+            1,
+            2,
+            3,
+            4
+         ]
+      },
+      "type": "Random"
+   },
+   {
+      "data": {
+         "DL": 7.1999999999999999e-07,
+         "DT": 1.1999999999999999e-06,
+         "ar39activity": 1.6021764870000004e-34,
+         "density": 8669456899850258432,
+         "drift_speed": 0.0016000000000000001,
+         "fluctuate": true,
+         "lifetime": 8000000,
+         "rng": "Random",
+         "time_offset": 0,
+         "xregions": [
+            {
+               "anode": -3520.9450000000002,
+               "cathode": -1.5875000000000909,
+               "response": -3430.4650000000001
+            },
+            {
+               "anode": -3625.855,
+               "cathode": -7145.2124999999996,
+               "response": -3716.335
+            },
+            {
+               "anode": 3625.855,
+               "cathode": 7145.2124999999996,
+               "response": 3716.335
+            },
+            {
+               "anode": 3520.9450000000002,
+               "cathode": 1.5875000000000909,
+               "response": 3430.4650000000001
+            }
+         ]
+      },
+      "type": "Drifter"
+   },
+   {
+      "data": {
+         "drifter": "Drifter"
+      },
+      "type": "DepoSetDrifter"
+   },
+   {
+      "data": {
+         "multiplicity": 1,
+         "tag_rules": [ ]
+      },
+      "name": "bi_manifold",
+      "type": "DepoSetFanout"
+   },
+   {
+      "data": {
+         "filename": "protodunehd-wires-larsoft-v1.json.bz2"
+      },
+      "type": "WireSchemaFile"
+   },
+   {
+      "data": {
+         "faces": [
+            {
+               "anode": -3520.9450000000002,
+               "cathode": -1.5875000000000909,
+               "response": -3430.4650000000001
+            },
+            {
+               "anode": -3625.855,
+               "cathode": -7145.2124999999996,
+               "response": -3716.335
+            }
+         ],
+         "ident": 0,
+         "nimpacts": 10,
+         "wire_schema": "WireSchemaFile"
+      },
+      "name": "apa0",
+      "type": "AnodePlane"
+   },
+   {
+      "type": "FftwDFT"
+   },
+   {
+      "data": {
+         "filename": "np04hd-garfield-6paths-mcmc-bestfit.json.bz2"
+      },
+      "name": "field0",
+      "type": "FieldResponse"
+   },
+   {
+      "data": {
+         "filename": "",
+         "gain": 2.2430470818000003e-12,
+         "nticks": 6125,
+         "postgain": 1,
+         "shaping": 2200,
+         "tick": 500
+      },
+      "name": "elecresp0",
+      "type": "ColdElecResponse"
+   },
+   {
+      "data": {
+         "nticks": 6125,
+         "tick": 500,
+         "width": 1100000
+      },
+      "type": "RCResponse"
+   },
+   {
+      "data": {
+         "magnitude": 1,
+         "nticks": 6125,
+         "start": -10000,
+         "tick": 500,
+         "time_smear": 1000
+      },
+      "type": "ResponseSys"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "field_response": "FieldResponse:field0",
+         "long_padding": 1500000,
+         "long_responses": [ ],
+         "nticks": 6125,
+         "overall_short_padding": 100000,
+         "plane": 0,
+         "short_responses": [
+            "ColdElecResponse:elecresp0"
+         ],
+         "tick": 500
+      },
+      "name": "PIRfield0plane0",
+      "type": "PlaneImpactResponse"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "field_response": "FieldResponse:field0",
+         "long_padding": 1500000,
+         "long_responses": [ ],
+         "nticks": 6125,
+         "overall_short_padding": 100000,
+         "plane": 1,
+         "short_responses": [
+            "ColdElecResponse:elecresp0"
+         ],
+         "tick": 500
+      },
+      "name": "PIRfield0plane1",
+      "type": "PlaneImpactResponse"
+   },
+   {
+      "data": {
+         "dft": "FftwDFT",
+         "field_response": "FieldResponse:field0",
+         "long_padding": 1500000,
+         "long_responses": [ ],
+         "nticks": 6125,
+         "overall_short_padding": 100000,
+         "plane": 2,
+         "short_responses": [
+            "ColdElecResponse:elecresp0"
+         ],
+         "tick": 500
+      },
+      "name": "PIRfield0plane2",
+      "type": "PlaneImpactResponse"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "dft": "FftwDFT",
+         "drift_speed": 0.0016000000000000001,
+         "first_frame_number": 100,
+         "fluctuate": true,
+         "nsigma": 3,
+         "pirs": [
+            "PlaneImpactResponse:PIRfield0plane0",
+            "PlaneImpactResponse:PIRfield0plane1",
+            "PlaneImpactResponse:PIRfield0plane2"
+         ],
+         "readout_time": 3062500,
+         "rng": "Random",
+         "start_time": -312500,
+         "tick": 500
+      },
+      "name": "depotransform-apa0",
+      "type": "DepoTransform"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "fill": 0,
+         "nticks": 6000,
+         "tags": [ ],
+         "tbin": 125,
+         "toffset": 0
+      },
+      "name": "reframer-apa0",
+      "type": "Reframer"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "baselines": [
+            1.0034e-06,
+            1.0034e-06,
+            5.0770000000000003e-07
+         ],
+         "frame_tag": "orig",
+         "fullscale": [
+            1.9999999999999999e-07,
+            1.5999999999999999e-06
+         ],
+         "gain": 1,
+         "resolution": 14
+      },
+      "name": "digitizer-apa0",
+      "type": "Digitizer"
+   },
+   {
+      "data": {
+         "anode": "AnodePlane:apa0",
+         "frames": [
+            "orig0"
+         ],
+         "output_filename": "magnify-protodunehd_hk.root",
+         "root_file_mode": "UPDATE",
+         "trace_has_tag": false
+      },
+      "name": "magorig0",
+      "type": "MagnifySink"
+   },
+   {
+      "name": "reco_fork0",
+      "type": "DumpFrames"
+   },
+   {
+      "data": {
+         "edges": [
+            {
+               "head": {
+                  "node": "DepoSetDrifter",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "wclsSimDepoSetSource",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "DepoSetFanout:bi_manifold",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoSetDrifter",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "DepoTransform:depotransform-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoSetFanout:bi_manifold",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "MagnifySink:magorig0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "Digitizer:digitizer-apa0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "DumpFrames:reco_fork0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "MagnifySink:magorig0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "Reframer:reframer-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "DepoTransform:depotransform-apa0",
+                  "port": 0
+               }
+            },
+            {
+               "head": {
+                  "node": "Digitizer:digitizer-apa0",
+                  "port": 0
+               },
+               "tail": {
+                  "node": "Reframer:reframer-apa0",
+                  "port": 0
+               }
+            }
+         ]
+      },
+      "type": "Pgrapher"
+   }
+]
