@@ -13,10 +13,10 @@ local io = import 'pgrapher/common/fileio.jsonnet';
 
 local input = std.extVar('input');
 local output = std.extVar('output');
-local use_dnnroi = true;
+local use_dnnroi = std.extVar('use_dnnroi');
 local inference_service = "TorchService"; // "TorchService" or "TritonService"
 local nchunks = 1;
-local model = "ts-model/mobileunet_largedataset_fullimage.ts"; // mobilenetv3-hokyeong.ts, unet-haiwang.ts
+local model = "ts-model/CP49_mobilenetv3.ts";
 
 local tools_maker = import 'pgrapher/common/tools.jsonnet';
 local base = import 'pgrapher/experiment/pdsp/simparams.jsonnet';
@@ -160,10 +160,11 @@ local hio_sp = [g.pnode({
         , 'mp2_roi%d' % n 
         , 'decon_charge%d' % n 
         , 'gauss%d' % n], 
-        filename: "g4-rec-%d.h5" % n,
-        // chunk: [1, 1], // ncol, nrow
+        filename: "hio_sp-%d.h5" % n,
+        chunk: [2560, 6000], // ncol, nrow
         gzip: 2,
-        high_throughput: true,
+        shuffle: true,
+        // high_throughput: true,
       },
     }, nin=1, nout=1),
     for n in std.range(0, std.length(tools.anodes) - 1)
