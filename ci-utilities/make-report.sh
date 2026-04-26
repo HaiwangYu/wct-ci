@@ -46,6 +46,6 @@ if [[ ${#PARTS[@]} -eq 0 ]]; then
 fi
 
 echo "Merging ${#PARTS[@]} PDF(s) -> $REPORT"
-pdfunite "${PARTS[@]}" "$REPORT"
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="$REPORT" "${PARTS[@]}"
 
 echo "Report written: $REPORT"

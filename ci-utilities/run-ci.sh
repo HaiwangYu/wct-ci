@@ -9,16 +9,19 @@ WORK_DIR="/exp/dune/app/users/yuhw/wct-pr-testing"
 
 REF=""
 PR_N=""
+SKIP_BUILD=0
 
 usage() {
-    echo "Usage: $0 --ref <tag|master> --pr <PR_number>"
+    echo "Usage: $0 --ref <tag|master> --pr <PR_number> [--skip-build]"
+    echo "  --skip-build  skip clone/configure/build entirely; use existing installs in WORK_DIR"
     exit 1
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --ref) REF="$2"; shift 2 ;;
-        --pr)  PR_N="$2"; shift 2 ;;
+        --ref)        REF="$2"; shift 2 ;;
+        --pr)         PR_N="$2"; shift 2 ;;
+        --skip-build) SKIP_BUILD=1; shift ;;
         *) usage ;;
     esac
 done
@@ -47,14 +50,22 @@ echo "  run dir   : $RUN_DIR"
 echo ""
 
 # Build reference
-echo "[1/6] Building reference ($REF)..."
-"$SCRIPT_DIR/build-wct.sh" ref "$REF" "$REF_SRC" "$REF_INSTALL" \
-    2>&1 | tee "$RUN_DIR/build-ref.log"
+if [[ $SKIP_BUILD -eq 1 ]]; then
+    echo "[1/6] Skipping reference build (--skip-build)"
+else
+    echo "[1/6] Building reference ($REF)..."
+    "$SCRIPT_DIR/build-wct.sh" ref "$REF" "$REF_SRC" "$REF_INSTALL" \
+        2>&1 | tee "$RUN_DIR/build-ref.log"
+fi
 
 # Build PR
-echo "[2/6] Building PR #$PR_N..."
-"$SCRIPT_DIR/build-wct.sh" pr "$PR_N" "$PR_SRC" "$PR_INSTALL" \
-    2>&1 | tee "$RUN_DIR/build-pr.log"
+if [[ $SKIP_BUILD -eq 1 ]]; then
+    echo "[2/6] Skipping PR build (--skip-build)"
+else
+    echo "[2/6] Building PR #$PR_N..."
+    "$SCRIPT_DIR/build-wct.sh" pr "$PR_N" "$PR_SRC" "$PR_INSTALL" \
+        2>&1 | tee "$RUN_DIR/build-pr.log"
+fi
 
 # Run wct unit tests on PR build
 echo "[3/6] Running wct unit tests..."

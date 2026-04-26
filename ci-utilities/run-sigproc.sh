@@ -56,8 +56,10 @@ if [[ "$MODE" == "pr" ]]; then
         "$REF_OUT_DIR/sp.tar.bz2" "$OUT_DIR/sp.tar.bz2"
 
     echo "[pr] Merging sigproc PDFs..."
-    pdfunite "$OUT_DIR/sp-frame.pdf" "$OUT_DIR/sp-comp-u.pdf" "$OUT_DIR/sp-comp-v.pdf" "$OUT_DIR/sp-comp-w.pdf" \
-        "$OUT_DIR/../03-sigproc-plots.pdf"
+    gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite \
+        -sOutputFile="$OUT_DIR/../03-sigproc-plots.pdf" \
+        "$OUT_DIR/sp-frame.pdf" "$OUT_DIR/sp-comp-u.pdf" \
+        "$OUT_DIR/sp-comp-v.pdf" "$OUT_DIR/sp-comp-w.pdf"
 fi
 
 echo "[$MODE] sigproc done: $OUT_DIR"

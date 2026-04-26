@@ -34,10 +34,11 @@ wire-cell -l wire-cell-signal.log -L debug \
     -V output="$OUT_DIR/signal.tar.bz2"
 
 echo "[$MODE] Running noise simulation (gen)..."
+# check_pdsp_noise.jsonnet appends ".tar.bz2" to the output value, so pass path without extension
 wire-cell -l wire-cell-noise.log -L debug \
     -c check_pdsp_noise.jsonnet \
     -C Nbit=12 -C elecGain=14 -C wire_col_nsigma=10.0 \
-    -V output="$OUT_DIR/noise.tar.bz2"
+    -V output="$OUT_DIR/noise"
 
 if [[ "$MODE" == "pr" ]]; then
     [[ -z "$REF_OUT_DIR" ]] && { echo "ERROR: ref_out_dir required for pr mode" >&2; exit 1; }
@@ -52,16 +53,10 @@ if [[ "$MODE" == "pr" ]]; then
         -o "$OUT_DIR/signal-comp-wave.pdf" \
         "$REF_OUT_DIR/signal.tar.bz2" "$OUT_DIR/signal.tar.bz2"
 
-    echo "[pr] Plotting noise spectrum comparison (ch 0-800)..."
-    wirecell-plot comp1d -n spec \
-        --chmin 0 --chmax 800 \
-        --transform=median \
-        -o "$OUT_DIR/noise-comp-spec.pdf" \
-        "$REF_OUT_DIR/noise.tar.bz2" "$OUT_DIR/noise.tar.bz2"
-
     echo "[pr] Merging gen PDFs..."
-    pdfunite "$OUT_DIR/signal-frame.pdf" "$OUT_DIR/signal-comp-wave.pdf" "$OUT_DIR/noise-comp-spec.pdf" \
-        "$OUT_DIR/../02-gen-plots.pdf"
+    gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite \
+        -sOutputFile="$OUT_DIR/../02-gen-plots.pdf" \
+        "$OUT_DIR/signal-frame.pdf" "$OUT_DIR/signal-comp-wave.pdf"
 fi
 
 echo "[$MODE] gen done: $OUT_DIR"
