@@ -22,6 +22,7 @@ mkdir -p "$OUT_DIR"
 
 cp "$SIGPROC_DIR/check_pdsp_sim_sp.jsonnet" "$OUT_DIR/"
 cp "$SIGPROC_DIR/depos.tar.bz2" "$OUT_DIR/"
+cp -r "$SIGPROC_DIR/ts-model" "$OUT_DIR/"
 
 cd "$OUT_DIR"
 
