@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 # Run gen (signal + noise) simulation and produce comparison plots.
 # Usage:
-#   ref mode: ./run-gen.sh ref <install_dir> <out_dir> <wct_ci_dir>
-#   pr  mode: ./run-gen.sh pr  <install_dir> <out_dir> <wct_ci_dir> <ref_out_dir>
+#   ref mode: ./run-gen.sh ref <install_dir> <src_dir> <out_dir> <wct_ci_dir>
+#   pr  mode: ./run-gen.sh pr  <install_dir> <src_dir> <out_dir> <wct_ci_dir> <ref_out_dir>
 set -euo pipefail
 
 MODE="$1"          # "ref" or "pr"
 INSTALL_DIR="$2"
-OUT_DIR="$3"
-WCT_CI_DIR="$4"
-REF_OUT_DIR="${5:-}"   # only required for pr mode
+SRC_DIR="$3"       # wire-cell-toolkit source (for cfg/)
+OUT_DIR="$4"
+WCT_CI_DIR="$5"
+REF_OUT_DIR="${6:-}"   # only required for pr mode
 
 GEN_DIR="$WCT_CI_DIR/gen"
 
-# Prepend the new install to PATH / library search
+# Prepend the built install and its cfg to the search paths
 export PATH="$INSTALL_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$INSTALL_DIR/lib:${LD_LIBRARY_PATH:-}"
+export WIRECELL_PATH="$SRC_DIR/cfg:${WIRECELL_PATH:-}"
 
 mkdir -p "$OUT_DIR"
 
@@ -53,10 +55,7 @@ if [[ "$MODE" == "pr" ]]; then
         -o "$OUT_DIR/signal-comp-wave.pdf" \
         "$REF_OUT_DIR/signal.tar.bz2" "$OUT_DIR/signal.tar.bz2"
 
-    echo "[pr] Merging gen PDFs..."
-    gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite \
-        -sOutputFile="$OUT_DIR/../02-gen-plots.pdf" \
-        "$OUT_DIR/signal-frame.pdf" "$OUT_DIR/signal-comp-wave.pdf"
+    echo "[pr] gen plots written to $OUT_DIR (merge outside container)"
 fi
 
 echo "[$MODE] gen done: $OUT_DIR"

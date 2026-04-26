@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Convert the test log to PDF and merge all PDFs into a single report.
+# Post-processing step — run OUTSIDE the container.
+# Merges individual PDFs produced by run-ci.sh into a single report.
 # Usage: ./make-report.sh <run_dir> <PR_number>
 set -euo pipefail
 
@@ -7,9 +8,11 @@ RUN_DIR="$1"
 PR_N="$2"
 
 LOG="$RUN_DIR/wct-tests.log"
-SUMMARY_PDF="$RUN_DIR/01-test-summary.pdf"
+GEN_DIR="$RUN_DIR/pr-gen"
+SIGPROC_DIR="$RUN_DIR/pr-sigproc"
 GEN_PDF="$RUN_DIR/02-gen-plots.pdf"
 SIGPROC_PDF="$RUN_DIR/03-sigproc-plots.pdf"
+SUMMARY_PDF="$RUN_DIR/01-test-summary.pdf"
 REPORT="$RUN_DIR/report-pr${PR_N}.pdf"
 
 # Convert test log to PDF — try tools in order of preference
@@ -29,16 +32,39 @@ convert_log_to_pdf() {
     fi
 }
 
-echo "Converting test log to PDF..."
-PARTS=()
-if convert_log_to_pdf "$LOG" "$SUMMARY_PDF"; then
-    PARTS+=("$SUMMARY_PDF")
+# Merge gen plots
+if [[ -f "$GEN_DIR/signal-frame.pdf" ]]; then
+    echo "Merging gen plots -> $GEN_PDF"
+    pdfunite "$GEN_DIR/signal-frame.pdf" "$GEN_DIR/signal-comp-wave.pdf" "$GEN_PDF"
 else
-    echo "  (test-summary PDF skipped; raw log is at $LOG)"
+    echo "WARNING: gen plots not found, skipping."
 fi
 
-[[ -f "$GEN_PDF"     ]] && PARTS+=("$GEN_PDF")     || echo "WARNING: gen plots PDF not found, skipping."
-[[ -f "$SIGPROC_PDF" ]] && PARTS+=("$SIGPROC_PDF") || echo "WARNING: sigproc plots PDF not found, skipping."
+# Merge sigproc plots
+if [[ -f "$SIGPROC_DIR/sp-frame.pdf" ]]; then
+    echo "Merging sigproc plots -> $SIGPROC_PDF"
+    pdfunite "$SIGPROC_DIR/sp-frame.pdf" \
+        "$SIGPROC_DIR/sp-comp-u.pdf" \
+        "$SIGPROC_DIR/sp-comp-v.pdf" \
+        "$SIGPROC_DIR/sp-comp-w.pdf" \
+        "$SIGPROC_PDF"
+else
+    echo "WARNING: sigproc plots not found, skipping."
+fi
+
+# Convert test log
+PARTS=()
+if [[ -f "$LOG" ]]; then
+    echo "Converting test log to PDF..."
+    if convert_log_to_pdf "$LOG" "$SUMMARY_PDF"; then
+        PARTS+=("$SUMMARY_PDF")
+    else
+        echo "  (test-summary PDF skipped; raw log is at $LOG)"
+    fi
+fi
+
+[[ -f "$GEN_PDF"     ]] && PARTS+=("$GEN_PDF")     || echo "WARNING: gen PDF not found, skipping."
+[[ -f "$SIGPROC_PDF" ]] && PARTS+=("$SIGPROC_PDF") || echo "WARNING: sigproc PDF not found, skipping."
 
 if [[ ${#PARTS[@]} -eq 0 ]]; then
     echo "ERROR: no PDFs to merge." >&2
@@ -46,6 +72,6 @@ if [[ ${#PARTS[@]} -eq 0 ]]; then
 fi
 
 echo "Merging ${#PARTS[@]} PDF(s) -> $REPORT"
-gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="$REPORT" "${PARTS[@]}"
+pdfunite "${PARTS[@]}" "$REPORT"
 
 echo "Report written: $REPORT"

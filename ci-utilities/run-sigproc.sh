@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # Run sigproc (signal processing) simulation and produce comparison plots.
 # Usage:
-#   ref mode: ./run-sigproc.sh ref <install_dir> <out_dir> <wct_ci_dir>
-#   pr  mode: ./run-sigproc.sh pr  <install_dir> <out_dir> <wct_ci_dir> <ref_out_dir>
+#   ref mode: ./run-sigproc.sh ref <install_dir> <src_dir> <out_dir> <wct_ci_dir>
+#   pr  mode: ./run-sigproc.sh pr  <install_dir> <src_dir> <out_dir> <wct_ci_dir> <ref_out_dir>
 set -euo pipefail
 
 MODE="$1"          # "ref" or "pr"
 INSTALL_DIR="$2"
-OUT_DIR="$3"
-WCT_CI_DIR="$4"
-REF_OUT_DIR="${5:-}"   # only required for pr mode
+SRC_DIR="$3"       # wire-cell-toolkit source (for cfg/)
+OUT_DIR="$4"
+WCT_CI_DIR="$5"
+REF_OUT_DIR="${6:-}"   # only required for pr mode
 
 SIGPROC_DIR="$WCT_CI_DIR/sigproc"
 
 export PATH="$INSTALL_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$INSTALL_DIR/lib:${LD_LIBRARY_PATH:-}"
+export WIRECELL_PATH="$SRC_DIR/cfg:${WIRECELL_PATH:-}"
 
 mkdir -p "$OUT_DIR"
 
@@ -55,11 +57,7 @@ if [[ "$MODE" == "pr" ]]; then
         -o "$OUT_DIR/sp-comp-w.pdf" \
         "$REF_OUT_DIR/sp.tar.bz2" "$OUT_DIR/sp.tar.bz2"
 
-    echo "[pr] Merging sigproc PDFs..."
-    gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite \
-        -sOutputFile="$OUT_DIR/../03-sigproc-plots.pdf" \
-        "$OUT_DIR/sp-frame.pdf" "$OUT_DIR/sp-comp-u.pdf" \
-        "$OUT_DIR/sp-comp-v.pdf" "$OUT_DIR/sp-comp-w.pdf"
+    echo "[pr] sigproc plots written to $OUT_DIR (merge outside container)"
 fi
 
 echo "[$MODE] sigproc done: $OUT_DIR"

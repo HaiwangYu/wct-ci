@@ -10,18 +10,21 @@ WORK_DIR="/exp/dune/app/users/yuhw/wct-pr-testing"
 REF=""
 PR_N=""
 SKIP_BUILD=0
+SKIP_TESTS=0
 
 usage() {
-    echo "Usage: $0 --ref <tag|master> --pr <PR_number> [--skip-build]"
+    echo "Usage: $0 --ref <tag|master> --pr <PR_number> [--skip-build] [--skip-tests]"
     echo "  --skip-build  skip clone/configure/build entirely; use existing installs in WORK_DIR"
+    echo "  --skip-tests  skip ./wcb --tests --alltests; go straight to gen/sigproc validation"
     exit 1
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --ref)        REF="$2"; shift 2 ;;
-        --pr)         PR_N="$2"; shift 2 ;;
-        --skip-build) SKIP_BUILD=1; shift ;;
+        --ref)         REF="$2"; shift 2 ;;
+        --pr)          PR_N="$2"; shift 2 ;;
+        --skip-build)  SKIP_BUILD=1; shift ;;
+        --skip-tests)  SKIP_TESTS=1; shift ;;
         *) usage ;;
     esac
 done
@@ -68,22 +71,24 @@ else
 fi
 
 # Run wct unit tests on PR build
-echo "[3/6] Running wct unit tests..."
-"$SCRIPT_DIR/run-wct-tests.sh" "$PR_SRC" "$RUN_DIR/wct-tests.log"
+if [[ $SKIP_TESTS -eq 1 ]]; then
+    echo "[3/6] Skipping wct unit tests (--skip-tests)"
+else
+    echo "[3/6] Running wct unit tests..."
+    "$SCRIPT_DIR/run-wct-tests.sh" "$PR_SRC" "$RUN_DIR/wct-tests.log"
+fi
 
 # Run gen validation (reference, then PR)
 echo "[4/6] Running gen validation..."
-"$SCRIPT_DIR/run-gen.sh" ref "$REF_INSTALL" "$RUN_DIR/ref-gen" "$WCT_CI_DIR"
-"$SCRIPT_DIR/run-gen.sh" pr  "$PR_INSTALL"  "$RUN_DIR/pr-gen"  "$WCT_CI_DIR" "$RUN_DIR/ref-gen"
+"$SCRIPT_DIR/run-gen.sh" ref "$REF_INSTALL" "$REF_SRC" "$RUN_DIR/ref-gen" "$WCT_CI_DIR"
+"$SCRIPT_DIR/run-gen.sh" pr  "$PR_INSTALL"  "$PR_SRC"  "$RUN_DIR/pr-gen"  "$WCT_CI_DIR" "$RUN_DIR/ref-gen"
 
 # Run sigproc validation (reference, then PR)
 echo "[5/6] Running sigproc validation..."
-"$SCRIPT_DIR/run-sigproc.sh" ref "$REF_INSTALL" "$RUN_DIR/ref-sigproc" "$WCT_CI_DIR"
-"$SCRIPT_DIR/run-sigproc.sh" pr  "$PR_INSTALL"  "$RUN_DIR/pr-sigproc"  "$WCT_CI_DIR" "$RUN_DIR/ref-sigproc"
-
-# Merge all PDFs into final report
-echo "[6/6] Generating report..."
-"$SCRIPT_DIR/make-report.sh" "$RUN_DIR" "$PR_N"
+"$SCRIPT_DIR/run-sigproc.sh" ref "$REF_INSTALL" "$REF_SRC" "$RUN_DIR/ref-sigproc" "$WCT_CI_DIR"
+"$SCRIPT_DIR/run-sigproc.sh" pr  "$PR_INSTALL"  "$PR_SRC"  "$RUN_DIR/pr-sigproc"  "$WCT_CI_DIR" "$RUN_DIR/ref-sigproc"
 
 echo ""
-echo "Done. Report: $RUN_DIR/report-pr${PR_N}.pdf"
+echo "In-container steps done. Run the following OUTSIDE the container to merge PDFs:"
+echo ""
+echo "  $SCRIPT_DIR/make-report.sh $RUN_DIR $PR_N"
