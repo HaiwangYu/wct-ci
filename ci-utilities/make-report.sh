@@ -15,6 +15,12 @@ SIGPROC_PDF="$RUN_DIR/03-sigproc-plots.pdf"
 SUMMARY_PDF="$RUN_DIR/01-test-summary.pdf"
 REPORT="$RUN_DIR/report-pr${PR_N}.pdf"
 
+# gs is more lenient than pdfunite with matplotlib-generated PDFs
+merge_pdfs() {
+    local out="$1"; shift
+    gs -dBATCH -dNOPAUSE -dQUIET -sDEVICE=pdfwrite -sOutputFile="$out" "$@"
+}
+
 # Convert test log to PDF — try tools in order of preference
 convert_log_to_pdf() {
     local log="$1" out="$2"
@@ -35,7 +41,9 @@ convert_log_to_pdf() {
 # Merge gen plots
 if [[ -f "$GEN_DIR/signal-frame.pdf" ]]; then
     echo "Merging gen plots -> $GEN_PDF"
-    pdfunite "$GEN_DIR/signal-frame.pdf" "$GEN_DIR/signal-comp-wave.pdf" "$GEN_PDF"
+    merge_pdfs "$GEN_PDF" \
+        "$GEN_DIR/signal-frame.pdf" \
+        "$GEN_DIR/signal-comp-wave.pdf"
 else
     echo "WARNING: gen plots not found, skipping."
 fi
@@ -43,11 +51,11 @@ fi
 # Merge sigproc plots
 if [[ -f "$SIGPROC_DIR/sp-frame.pdf" ]]; then
     echo "Merging sigproc plots -> $SIGPROC_PDF"
-    pdfunite "$SIGPROC_DIR/sp-frame.pdf" \
+    merge_pdfs "$SIGPROC_PDF" \
+        "$SIGPROC_DIR/sp-frame.pdf" \
         "$SIGPROC_DIR/sp-comp-u.pdf" \
         "$SIGPROC_DIR/sp-comp-v.pdf" \
-        "$SIGPROC_DIR/sp-comp-w.pdf" \
-        "$SIGPROC_PDF"
+        "$SIGPROC_DIR/sp-comp-w.pdf"
 else
     echo "WARNING: sigproc plots not found, skipping."
 fi
@@ -72,6 +80,6 @@ if [[ ${#PARTS[@]} -eq 0 ]]; then
 fi
 
 echo "Merging ${#PARTS[@]} PDF(s) -> $REPORT"
-pdfunite "${PARTS[@]}" "$REPORT"
+merge_pdfs "$REPORT" "${PARTS[@]}"
 
 echo "Report written: $REPORT"
