@@ -70,12 +70,15 @@ else
         2>&1 | tee "$RUN_DIR/build-pr.log"
 fi
 
-# Run wct unit tests on PR build
+# Run wct unit tests on reference and PR builds
 if [[ $SKIP_TESTS -eq 1 ]]; then
     echo "[3/6] Skipping wct unit tests (--skip-tests)"
 else
-    echo "[3/6] Running wct unit tests..."
-    "$SCRIPT_DIR/run-wct-tests.sh" "$PR_SRC" "$RUN_DIR/wct-tests.log"
+    echo "[3/6] Running wct unit tests for reference and PR..."
+    "$SCRIPT_DIR/run-wct-tests.sh" "$REF_SRC" "$RUN_DIR/ref-wct-tests.log" \
+        "$RUN_DIR/ref-wct-tests-failures.txt" "ref"
+    "$SCRIPT_DIR/run-wct-tests.sh" "$PR_SRC" "$RUN_DIR/pr-wct-tests.log" \
+        "$RUN_DIR/pr-wct-tests-failures.txt" "pr"
 fi
 
 # Run gen validation (reference, then PR)

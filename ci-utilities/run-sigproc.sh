@@ -14,11 +14,58 @@ REF_OUT_DIR="${6:-}"   # only required for pr mode
 
 SIGPROC_DIR="$WCT_CI_DIR/sigproc"
 
+log_ldd() {
+    local exe="$1"
+
+    if [[ -z "$exe" || ! -e "$exe" ]]; then
+        return
+    fi
+
+    echo ""
+    echo "--- ldd: $exe ---"
+    if [[ -x "$exe" ]]; then
+        ldd "$exe" 2>&1 || true
+    else
+        echo "not executable"
+    fi
+}
+
+resolve_command() {
+    local cmd="$1"
+    command -v "$cmd" 2>/dev/null || true
+}
+
+write_context() {
+    local git_commit
+    git_commit="$(git -C "$SRC_DIR" rev-parse --short HEAD 2>/dev/null || true)"
+
+    echo "=== sigproc runtime context ($MODE) ==="
+    echo "date: $(date -Is)"
+    echo "install_dir: $INSTALL_DIR"
+    echo "src_dir: $SRC_DIR"
+    echo "git_commit: ${git_commit:-unknown}"
+    echo "out_dir: $OUT_DIR"
+    echo "PATH: $PATH"
+    echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:-}"
+    echo "WIRECELL_PATH: ${WIRECELL_PATH:-}"
+    echo ""
+    echo "--- resolved commands ---"
+    echo "wire-cell: $(resolve_command wire-cell)"
+    echo "wirecell-plot: $(resolve_command wirecell-plot)"
+    log_ldd "$(resolve_command wire-cell)"
+    log_ldd "$(resolve_command wirecell-plot)"
+    echo ""
+    echo "=== sigproc stdout ($MODE) ==="
+}
+
 export PATH="$INSTALL_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$INSTALL_DIR/lib:${LD_LIBRARY_PATH:-}"
 export WIRECELL_PATH="$SRC_DIR/cfg:${WIRECELL_PATH:-}"
 
 mkdir -p "$OUT_DIR"
+
+exec > >(tee "$OUT_DIR/run-sigproc.log") 2>&1
+write_context
 
 cp "$SIGPROC_DIR/check_pdsp_sim_sp.jsonnet" "$OUT_DIR/"
 cp "$SIGPROC_DIR/depos.tar.bz2" "$OUT_DIR/"

@@ -43,7 +43,7 @@ The final report is written to:
 | `--ref <tag\|master>` | Reference to build and compare against (e.g. `master`, `0.33.0`) |
 | `--pr <N>` | GitHub PR number to test |
 | `--skip-build` | Skip clone, configure, and build entirely; use existing installs in the work dir |
-| `--skip-tests` | Skip `./wcb --tests --alltests`; jump straight to gen/sigproc validation |
+| `--skip-tests` | Skip `./wcb --tests --alltests` for ref and PR; jump straight to gen/sigproc validation |
 
 Example — re-run gen/sigproc only, skipping build and unit tests:
 ```bash
@@ -58,7 +58,7 @@ Example — re-run gen/sigproc only, skipping build and unit tests:
 |------|--------|-------------|
 | 1 | `build-wct.sh` | Clones wct, checks out reference tag/master, builds and installs |
 | 2 | `build-wct.sh` | Same for the PR branch |
-| 3 | `run-wct-tests.sh` | Runs `./wcb --tests --alltests` on the PR build |
+| 3 | `run-wct-tests.sh` | Runs `./wcb --tests --alltests` on the reference and PR builds, saving full logs and failure-only summaries |
 | 4 | `run-gen.sh` | Runs signal simulation (`gen/`) for ref and PR, produces individual plot PDFs |
 | 5 | `run-sigproc.sh` | Runs signal processing (`sigproc/`) for ref and PR, produces individual plot PDFs |
 
@@ -79,7 +79,11 @@ Example — re-run gen/sigproc only, skipping build and unit tests:
 └── run-<timestamp>-pr<N>/
     ├── build-ref.log
     ├── build-pr.log
-    ├── wct-tests.log
+    ├── ref-wct-tests.log
+    ├── ref-wct-tests-failures.txt
+    ├── pr-wct-tests.log
+    ├── pr-wct-tests-failures.txt
+    ├── 01-pr-review.txt
     ├── ref-gen/
     ├── pr-gen/
     ├── ref-sigproc/
