@@ -7,6 +7,7 @@ SRC_DIR="$1"
 LOG_FILE="$2"
 SUMMARY_FILE="$3"
 LABEL="${4:-wct}"
+LOCAL_WIRE_CELL="$SRC_DIR/build/apps/wire-cell"
 
 mkdir -p "$(dirname "$LOG_FILE")" "$(dirname "$SUMMARY_FILE")"
 
@@ -31,6 +32,30 @@ resolve_command() {
     command -v "$cmd" 2>/dev/null || true
 }
 
+build_library_path() {
+    local lib_path=""
+    local lib_dir
+
+    while IFS= read -r lib_dir; do
+        if [[ -z "$lib_path" ]]; then
+            lib_path="$lib_dir"
+        else
+            lib_path="$lib_path:$lib_dir"
+        fi
+    done < <(find "$SRC_DIR/build" -mindepth 1 -maxdepth 2 -type f -name 'libWireCell*.so' \
+        -printf '%h\n' 2>/dev/null | sort -u)
+
+    printf '%s' "$lib_path"
+}
+
+require_local_build() {
+    if [[ ! -x "$LOCAL_WIRE_CELL" ]]; then
+        echo "ERROR: local build executable not found or not executable: $LOCAL_WIRE_CELL" >&2
+        echo "       Refusing to fall back to CVMFS wire-cell." >&2
+        exit 1
+    fi
+}
+
 write_context() {
     local git_commit
     git_commit="$(git -C "$SRC_DIR" rev-parse --short HEAD 2>/dev/null || true)"
@@ -47,8 +72,15 @@ write_context() {
         echo ""
         echo "--- resolved commands ---"
         echo "wcb: $SRC_DIR/wcb"
+        echo "expected_wire-cell: $LOCAL_WIRE_CELL"
         echo "wire-cell: $(resolve_command wire-cell)"
         echo "wirecell-plot: $(resolve_command wirecell-plot)"
+        if [[ "$(resolve_command wire-cell)" != "$LOCAL_WIRE_CELL" ]]; then
+            echo "ERROR: wire-cell resolved outside the local build tree"
+            echo "       expected: $LOCAL_WIRE_CELL"
+            echo "       actual:   $(resolve_command wire-cell)"
+            exit 1
+        fi
         log_ldd "$SRC_DIR/wcb"
         log_ldd "$(resolve_command wire-cell)"
         log_ldd "$(resolve_command wirecell-plot)"
@@ -128,6 +160,12 @@ append_failed_test_ldd() {
 
 cd "$SRC_DIR"
 
+require_local_build
+BUILD_LIB_PATH="$(build_library_path)"
+export PATH="$SRC_DIR/build/apps:$PATH"
+if [[ -n "$BUILD_LIB_PATH" ]]; then
+    export LD_LIBRARY_PATH="$BUILD_LIB_PATH:${LD_LIBRARY_PATH:-}"
+fi
 export WIRECELL_PATH="$SRC_DIR/cfg:${WIRECELL_PATH:-}"
 
 write_context

@@ -13,6 +13,31 @@ WCT_CI_DIR="$5"
 REF_OUT_DIR="${6:-}"   # only required for pr mode
 
 GEN_DIR="$WCT_CI_DIR/gen"
+LOCAL_WIRE_CELL="$SRC_DIR/build/apps/wire-cell"
+
+build_library_path() {
+    local lib_path=""
+    local lib_dir
+
+    while IFS= read -r lib_dir; do
+        if [[ -z "$lib_path" ]]; then
+            lib_path="$lib_dir"
+        else
+            lib_path="$lib_path:$lib_dir"
+        fi
+    done < <(find "$SRC_DIR/build" -mindepth 1 -maxdepth 2 -type f -name 'libWireCell*.so' \
+        -printf '%h\n' 2>/dev/null | sort -u)
+
+    printf '%s' "$lib_path"
+}
+
+require_local_build() {
+    if [[ ! -x "$LOCAL_WIRE_CELL" ]]; then
+        echo "ERROR: local build executable not found or not executable: $LOCAL_WIRE_CELL" >&2
+        echo "       Refusing to fall back to CVMFS wire-cell." >&2
+        exit 1
+    fi
+}
 
 log_ldd() {
     local exe="$1"
@@ -50,17 +75,31 @@ write_context() {
     echo "WIRECELL_PATH: ${WIRECELL_PATH:-}"
     echo ""
     echo "--- resolved commands ---"
+    echo "expected_wire-cell: $LOCAL_WIRE_CELL"
     echo "wire-cell: $(resolve_command wire-cell)"
     echo "wirecell-plot: $(resolve_command wirecell-plot)"
+    if [[ "$(resolve_command wire-cell)" != "$LOCAL_WIRE_CELL" ]]; then
+        echo "ERROR: wire-cell resolved outside the local build tree"
+        echo "       expected: $LOCAL_WIRE_CELL"
+        echo "       actual:   $(resolve_command wire-cell)"
+        exit 1
+    fi
     log_ldd "$(resolve_command wire-cell)"
     log_ldd "$(resolve_command wirecell-plot)"
     echo ""
     echo "=== gen stdout ($MODE) ==="
 }
 
-# Prepend the built install and its cfg to the search paths
-export PATH="$INSTALL_DIR/bin:$PATH"
-export LD_LIBRARY_PATH="$INSTALL_DIR/lib:${LD_LIBRARY_PATH:-}"
+require_local_build
+BUILD_LIB_PATH="$(build_library_path)"
+
+# Prefer the build tree. The install prefix may not exist for --skip-build reruns.
+export PATH="$SRC_DIR/build/apps:$INSTALL_DIR/bin:$PATH"
+if [[ -n "$BUILD_LIB_PATH" ]]; then
+    export LD_LIBRARY_PATH="$BUILD_LIB_PATH:$INSTALL_DIR/lib:${LD_LIBRARY_PATH:-}"
+else
+    export LD_LIBRARY_PATH="$INSTALL_DIR/lib:${LD_LIBRARY_PATH:-}"
+fi
 export WIRECELL_PATH="$SRC_DIR/cfg:${WIRECELL_PATH:-}"
 
 mkdir -p "$OUT_DIR"

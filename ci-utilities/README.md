@@ -62,6 +62,11 @@ Example — re-run gen/sigproc only, skipping build and unit tests:
 | 4 | `run-gen.sh` | Runs signal simulation (`gen/`) for ref and PR, produces individual plot PDFs |
 | 5 | `run-sigproc.sh` | Runs signal processing (`sigproc/`) for ref and PR, produces individual plot PDFs |
 
+For `--skip-build` reruns, the validation scripts use the local build-tree
+executable (`<src>/build/apps/wire-cell`) and prepend all `<src>/build/*`
+library directories. They do not silently fall back to the CVMFS `wire-cell`
+executable if the install prefix is absent.
+
 **Outside container** (`make-report.sh`):
 
 | Step | Script | Description |

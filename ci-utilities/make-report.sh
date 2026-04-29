@@ -10,6 +10,8 @@ PR_N="$2"
 WORK_DIR="$(dirname "$RUN_DIR")"
 REF_INSTALL="$WORK_DIR/ref-install"
 PR_INSTALL="$WORK_DIR/pr-${PR_N}-install"
+REF_SRC="$WORK_DIR/ref-src"
+PR_SRC="$WORK_DIR/pr-${PR_N}-src"
 
 REF_SUMMARY="$RUN_DIR/ref-wct-tests-failures.txt"
 PR_SUMMARY="$RUN_DIR/pr-wct-tests-failures.txt"
@@ -87,14 +89,14 @@ write_list_or_none() {
 check_expected_command_path() {
     local log="$1"
     local cmd="$2"
-    local expected_prefix="$3"
+    local expected_path="$3"
 
     [[ -f "$log" ]] || return 0
     local resolved
     resolved="$(awk -F': ' -v cmd="$cmd" '$1 == cmd { print $2; exit }' "$log")"
     [[ -n "$resolved" ]] || return 0
-    if [[ "$resolved" != "$expected_prefix"/* ]]; then
-        echo "$log: $cmd resolved to $resolved, expected under $expected_prefix"
+    if [[ "$resolved" != "$expected_path" ]]; then
+        echo "$log: $cmd resolved to $resolved, expected $expected_path"
     fi
 }
 
@@ -147,14 +149,10 @@ generate_review() {
         done
         echo ""
 
-        check_expected_command_path "$RUN_DIR/ref-gen/run-gen.log" "wire-cell" "$REF_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/ref-gen/run-gen.log" "wirecell-plot" "$REF_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/pr-gen/run-gen.log" "wire-cell" "$PR_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/pr-gen/run-gen.log" "wirecell-plot" "$PR_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/ref-sigproc/run-sigproc.log" "wire-cell" "$REF_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/ref-sigproc/run-sigproc.log" "wirecell-plot" "$REF_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/pr-sigproc/run-sigproc.log" "wire-cell" "$PR_INSTALL" >> "$suggestions"
-        check_expected_command_path "$RUN_DIR/pr-sigproc/run-sigproc.log" "wirecell-plot" "$PR_INSTALL" >> "$suggestions"
+        check_expected_command_path "$RUN_DIR/ref-gen/run-gen.log" "wire-cell" "$REF_SRC/build/apps/wire-cell" >> "$suggestions"
+        check_expected_command_path "$RUN_DIR/pr-gen/run-gen.log" "wire-cell" "$PR_SRC/build/apps/wire-cell" >> "$suggestions"
+        check_expected_command_path "$RUN_DIR/ref-sigproc/run-sigproc.log" "wire-cell" "$REF_SRC/build/apps/wire-cell" >> "$suggestions"
+        check_expected_command_path "$RUN_DIR/pr-sigproc/run-sigproc.log" "wire-cell" "$PR_SRC/build/apps/wire-cell" >> "$suggestions"
 
         for log in "$REF_TEST_LOG" "$PR_TEST_LOG" \
             "$RUN_DIR/ref-gen/run-gen.log" "$RUN_DIR/pr-gen/run-gen.log" \
