@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Main CI orchestrator: builds ref + PR, runs tests and validation, produces a merged PDF report.
-# Usage: ./run-ci.sh --ref <tag|master> --pr <PR_number>
+# Usage: ./run-ci.sh --ref <tag|master> --pr <PR_number> [--merge-pr]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,9 +11,11 @@ REF=""
 PR_N=""
 SKIP_BUILD=0
 SKIP_TESTS=0
+MERGE_PR=0
 
 usage() {
-    echo "Usage: $0 --ref <tag|master> --pr <PR_number> [--skip-build] [--skip-tests]"
+    echo "Usage: $0 --ref <tag|master> --pr <PR_number> [--merge-pr] [--skip-build] [--skip-tests]"
+    echo "  --merge-pr    build/test the PR as REF plus the PR head merged in"
     echo "  --skip-build  skip clone/configure/build entirely; use existing installs in WORK_DIR"
     echo "  --skip-tests  skip ./wcb --tests --alltests; go straight to gen/sigproc validation"
     exit 1
@@ -23,6 +25,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --ref)         REF="$2"; shift 2 ;;
         --pr)          PR_N="$2"; shift 2 ;;
+        --merge-pr)    MERGE_PR=1; shift ;;
         --skip-build)  SKIP_BUILD=1; shift ;;
         --skip-tests)  SKIP_TESTS=1; shift ;;
         *) usage ;;
@@ -48,6 +51,7 @@ mkdir -p "$RUN_DIR" "$WORK_DIR"
 echo "=== WCT CI run ==="
 echo "  ref       : $REF"
 echo "  PR        : #$PR_N"
+echo "  PR mode   : $([[ $MERGE_PR -eq 1 ]] && echo "merge into ref" || echo "PR head")"
 echo "  work dir  : $WORK_DIR"
 echo "  run dir   : $RUN_DIR"
 echo ""
@@ -64,6 +68,10 @@ fi
 # Build PR
 if [[ $SKIP_BUILD -eq 1 ]]; then
     echo "[2/6] Skipping PR build (--skip-build)"
+elif [[ $MERGE_PR -eq 1 ]]; then
+    echo "[2/6] Building PR #$PR_N merged into $REF..."
+    "$SCRIPT_DIR/build-wct.sh" merge-pr "$PR_N" "$PR_SRC" "$PR_INSTALL" "$REF" \
+        2>&1 | tee "$RUN_DIR/build-pr.log"
 else
     echo "[2/6] Building PR #$PR_N..."
     "$SCRIPT_DIR/build-wct.sh" pr "$PR_N" "$PR_SRC" "$PR_INSTALL" \

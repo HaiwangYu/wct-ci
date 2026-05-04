@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Clone and build wire-cell-toolkit for either a reference tag/master or a PR branch.
-# Usage: ./build-wct.sh <ref|pr> <tag|master|PR_number> <src_dir> <install_dir>
+# Clone and build wire-cell-toolkit for either a reference, PR branch, or PR merged into a reference.
+# Usage: ./build-wct.sh <ref|pr|merge-pr> <tag|master|PR_number> <src_dir> <install_dir> [base_ref]
 set -euo pipefail
 
-MODE="$1"     # "ref" or "pr"
-TARGET="$2"   # tag/master for ref mode; PR number for pr mode
+MODE="$1"     # "ref", "pr", or "merge-pr"
+TARGET="$2"   # tag/master for ref mode; PR number for pr/merge-pr mode
 SRC_DIR="$3"
 INSTALL_DIR="$4"
+BASE_REF="${5:-}"
 
 WCT_REPO="https://github.com/WireCell/wire-cell-toolkit"
 
@@ -27,8 +28,20 @@ elif [[ "$MODE" == "pr" ]]; then
     echo "Fetching PR #$TARGET"
     git fetch origin "pull/${TARGET}/head"
     git checkout FETCH_HEAD
+elif [[ "$MODE" == "merge-pr" ]]; then
+    if [[ -z "$BASE_REF" ]]; then
+        echo "ERROR: merge-pr mode requires a base reference as the fifth argument" >&2
+        exit 1
+    fi
+    echo "Checking out reference base: $BASE_REF"
+    git checkout "$BASE_REF"
+    echo "Fetching PR #$TARGET"
+    git fetch origin "pull/${TARGET}/head"
+    echo "Merging PR #$TARGET into $BASE_REF"
+    git -c user.name="wct-ci" -c user.email="wct-ci@example.invalid" \
+        merge --no-edit FETCH_HEAD
 else
-    echo "ERROR: mode must be 'ref' or 'pr'" >&2
+    echo "ERROR: mode must be 'ref', 'pr', or 'merge-pr'" >&2
     exit 1
 fi
 

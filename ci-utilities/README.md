@@ -42,8 +42,14 @@ The final report is written to:
 |------|-------------|
 | `--ref <tag\|master>` | Reference to build and compare against (e.g. `master`, `0.33.0`) |
 | `--pr <N>` | GitHub PR number to test |
+| `--merge-pr` | Test the PR as `<ref>` plus the PR head merged in, instead of testing the PR head directly |
 | `--skip-build` | Skip clone, configure, and build entirely; use existing installs in the work dir |
 | `--skip-tests` | Skip `./wcb --tests --alltests` for ref and PR; jump straight to gen/sigproc validation |
+
+Example — test PR 467 after merging it into current `master`:
+```bash
+./run-ci.sh --ref master --pr 467 --merge-pr
+```
 
 Example — re-run gen/sigproc only, skipping build and unit tests:
 ```bash
@@ -57,7 +63,7 @@ Example — re-run gen/sigproc only, skipping build and unit tests:
 | Step | Script | Description |
 |------|--------|-------------|
 | 1 | `build-wct.sh` | Clones wct, checks out reference tag/master, builds and installs |
-| 2 | `build-wct.sh` | Same for the PR branch |
+| 2 | `build-wct.sh` | Builds the PR branch, or with `--merge-pr`, checks out the reference and merges the PR head before building |
 | 3 | `run-wct-tests.sh` | Runs `./wcb --tests --alltests` on the reference and PR builds, saving full logs and failure-only summaries |
 | 4 | `run-gen.sh` | Runs signal simulation (`gen/`) for ref and PR, produces individual plot PDFs |
 | 5 | `run-sigproc.sh` | Runs signal processing (`sigproc/`) for ref and PR, produces individual plot PDFs |
