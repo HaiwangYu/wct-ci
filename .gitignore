@@ -9,4 +9,7 @@
 *.h5
 *.png
 *.pptx
+*.pdf
+*.npz
+tmp
 cfg
