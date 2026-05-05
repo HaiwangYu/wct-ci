@@ -43,9 +43,9 @@ physics: {
    ]
    producers: {
       opdigi10ppm: {
-         BackTime: 2e-1
+         BackTime: 3.86e-1
          Dwindow: 10
-         DynamicBitRange: 14
+         DynamicBitRange: 13
          FrontTime: 1.3e-2
          InputTags: [
             "sipmAr10ppm",
@@ -54,10 +54,10 @@ physics: {
             "sipmXe10ppmExt"
          ]
          LineNoiseRMS: 2.6
-         MaxAmplitude: 6.6e-2
+         MaxAmplitude: 5.94e-2
          Padding: 100
          PeakTime: 2.8e-2
-         Pedestal: 500
+         Pedestal: 100
          PreTrigger: 20
          PulseLength: 5.2
          ReadoutWindow: 320
@@ -114,16 +114,16 @@ physics: {
                "pgrapher/experiment/dune-vd/wcls-sim-drift-simchannel-nf-sp.jsonnet"
             ]
             inputers: [
-               "wclsSimDepoSource:"
+               "wclsSimDepoSetSource:"
             ]
             loglevels: [
                "debug"
             ]
             logsinks: [
-               "stdout:debug"
+               "stdout"
             ]
             outputers: [
-               "wclsSimChannelSink:postdrift",
+               "wclsDepoFluxWriter:postdrift",
                "wclsFrameSaver:spsignals"
                , "wclsFrameSaver:simdigits"
             ]
@@ -152,10 +152,10 @@ physics: {
                elecGain: 14
                lifetime: 10400
                nticks: 8500
-               process_apa_index: 0
+               process_apa_index: 28
                response_plane: 1.892e1
                use_dnnroi: false
-               use_hydra: false
+               use_hydra: true
             }
             tool_type: "WCLS"
          }
@@ -899,6 +899,10 @@ services: {
    TimeTracker: {}
    WireReadout: {
       ChannelsPerOpDet: 1
+      PDMapTool: {
+         MappingFile: "PDVD_PDS_Mapping_v09162025.json"
+         tool_type: "PDVDPDMapAlg"
+      }
       service_provider: "DUNEWireReadout"
    }
    message: {
