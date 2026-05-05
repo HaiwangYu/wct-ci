@@ -43,7 +43,7 @@ jsonnet \
 --ext-code Nbit=14 \
 --ext-code elecGain=14 \
 --ext-code ncrm=320 \
---ext-code process_apa_index=0 \
+--ext-code process_tpc_index=0 \
 --ext-code use_dnnroi=false \
 --ext-code use_hydra=true \
 --ext-code save_rawdigits=false \

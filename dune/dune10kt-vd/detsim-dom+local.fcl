@@ -125,13 +125,14 @@ physics: {
             outputers: [
                "wclsDepoFluxWriter:postdrift",
                "wclsFrameSaver:spsignals"
+               , "wclsFrameSaver:simdigits"
             ]
             params: {
                files_fields: "dunevd-resp-isoc3views-18d92.json.bz2"
                files_noise: "dunevd10kt-1x6x6-3view-noise-spectra-v1.json.bz2"
                files_wires: "dunevd10kt_3view_30deg_v6_refactored.json.bz2"
                geo_planeid_labels: "default"
-               process_mode: "full"
+               process_mode: "single-sim-sp"
             }
             plugins: [
                "WireCellPgraph",
@@ -151,7 +152,7 @@ physics: {
                elecGain: 14
                lifetime: 10400
                nticks: 8500
-               process_apa_index: 0
+               process_tpc_index: 141
                response_plane: 1.892e1
                save_rawdigits: false
                use_dnnroi: false

@@ -152,7 +152,7 @@ physics: {
                elecGain: 14
                lifetime: 10400
                nticks: 8500
-               process_apa_index: 28
+               process_tpc_index: 28
                response_plane: 1.892e1
                use_dnnroi: false
                use_hydra: true

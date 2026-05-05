@@ -49,7 +49,7 @@ jsonnet \
 --ext-code G4RefTime=0 \
 --ext-code response_plane=18.92 \
 --ext-code ncrm=320 \
---ext-code process_apa_index=141 \
+--ext-code process_tpc_index=141 \
 --ext-code use_dnnroi=false \
 --ext-code use_hydra=true \
 --ext-code save_rawdigits=false \
