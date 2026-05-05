@@ -313,19 +313,26 @@ def show_interactive(simch_arr, wire_arr, ch_range, tick_range, args):
                 pass
             twin_state["ax2"] = None
 
+        simch_integral = float(simch_arr[idx].sum())
+        wire_integral = float(wire_arr[idx].sum())
+
         ax_1d.plot(tick_axis, simch_arr[idx], color="darkorange", lw=0.9,
-                   label=f"SimCh ch={ch}")
+                   label=f"SimCh ch={ch}  ∫={simch_integral:.3g} e⁻")
         ax_1d.set_ylabel("electrons", color="darkorange")
         ax_1d.tick_params(axis="y", labelcolor="darkorange")
 
         ax2 = ax_1d.twinx()
         twin_state["ax2"] = ax2
         ax2.plot(tick_axis, wire_arr[idx], color="steelblue", lw=0.9,
-                 label=f"Wire ({args.wire_tag}) ch={ch}")
+                 label=f"Wire ({args.wire_tag}) ch={ch}  ∫={wire_integral:.3g} ADC·tick")
         ax2.set_ylabel(f"ADC ({args.wire_tag})", color="steelblue")
         ax2.tick_params(axis="y", labelcolor="steelblue")
 
-        ax_1d.set_title(f"Channel {ch}")
+        ax_1d.set_title(
+            f"Channel {ch}   "
+            f"∫SimCh = {simch_integral:.4g} e⁻   "
+            f"∫Wire({args.wire_tag}) = {wire_integral:.4g} ADC·tick"
+        )
         ax_1d.set_xlabel("Tick")
 
         # Combined legend

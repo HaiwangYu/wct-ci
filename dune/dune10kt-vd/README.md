@@ -1,5 +1,6 @@
 ```bash
 fhicl-dump standard_detsim_dunevd10kt.fcl >& detsim-dom+local.fcl
+lar -n 1 -c standard_detsim_dunevd10kt.fcl -s input.root -o detsim.root
 lar -n 1 -c detsim-dom+local.fcl -s input.root -o detsim.root
 
 python visualization-utilities/plot_detsim.py \

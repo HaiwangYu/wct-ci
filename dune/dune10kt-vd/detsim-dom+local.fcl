@@ -125,7 +125,6 @@ physics: {
             outputers: [
                "wclsDepoFluxWriter:postdrift",
                "wclsFrameSaver:spsignals"
-               # , "wclsFrameSaver:simdigits"
             ]
             params: {
                files_fields: "dunevd-resp-isoc3views-18d92.json.bz2"
@@ -152,7 +151,7 @@ physics: {
                elecGain: 14
                lifetime: 10400
                nticks: 8500
-               process_apa_index: 141
+               process_apa_index: 0
                response_plane: 1.892e1
                save_rawdigits: false
                use_dnnroi: false
