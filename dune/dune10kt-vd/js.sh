@@ -40,7 +40,7 @@ jsonnet \
 --ext-str files_fields="dunevd-resp-isoc3views-18d92.json.bz2" \
 --ext-str files_noise="dunevd10kt-1x6x6-3view-noise-spectra-v1.json.bz2" \
 --ext-str geo_planeid_labels="default" \
---ext-str process_mode="single-sim-sp" \
+--ext-str process_mode="single-sp" \
 --ext-code nticks=8500 \
 --ext-code DL=4e-9 \
 --ext-code DT=8.8e-9 \
