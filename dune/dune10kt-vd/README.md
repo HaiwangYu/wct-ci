@@ -8,6 +8,7 @@ lar -n 1 -c detsim-dom+local.fcl -s input.root -o detsim.root
 # single-sp, APA141
 python ../../visualization-utilities/plot_detsim.py \
   --input detsim.root \
+  --simch-tag simpleSC141 \
   --wire-tag gauss141 \
   --channel-min 212500 --channel-max 213000 \
   --tick-min 0 --tick-max 1500 \

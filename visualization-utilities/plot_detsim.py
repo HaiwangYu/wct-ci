@@ -24,7 +24,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 DEFAULT_INPUT = "dune/dune10kt-vd/detsim.root"
-DEFAULT_SIMCH_BRANCH = "sim::SimChannels_tpcrawdecoder_simpleSC_detsim.obj"
+DEFAULT_SIMCH_TAG = "simpleSC"
+_SIMCH_BRANCH_TEMPLATE = "sim::SimChannels_tpcrawdecoder_{tag}_detsim.obj"
 DEFAULT_WIRE_TAG = "gauss"
 _WIRE_BRANCH_TEMPLATE = "recob::Wires_tpcrawdecoder_{tag}_detsim.obj"
 
@@ -39,9 +40,15 @@ def parse_args():
     p.add_argument("--input", default=DEFAULT_INPUT, help="artROOT file path")
     p.add_argument("--entry", type=int, default=0, help="Events tree entry (default 0)")
     p.add_argument(
+        "--simch-tag",
+        default=DEFAULT_SIMCH_TAG,
+        metavar="TAG",
+        help=f"SimChannels product instance tag (default: {DEFAULT_SIMCH_TAG})",
+    )
+    p.add_argument(
         "--simch-branch",
-        default=DEFAULT_SIMCH_BRANCH,
-        help="SimChannels branch name in Events TTree",
+        default=None,
+        help="Override SimChannels branch name directly (overrides --simch-tag)",
     )
     p.add_argument(
         "--wire-tag",
@@ -108,7 +115,11 @@ def _vec_to_numpy(vec):
 
 
 def read_simchannels(ROOT, tree, branch, entry, ch_min, ch_max, tick_min, tick_max):
-    """Return sparse dict {channel: {tdc: total_electrons}}."""
+    """Return (deposits, totals).
+
+    deposits: sparse dict {channel: {tdc: total_electrons}} restricted to the range.
+    totals: dict with charge_all, energy_all, charge_in_range, energy_in_range.
+    """
     reader = ROOT.TTreeReader(tree)
     simchs = ROOT.TTreeReaderArray("sim::SimChannel")(reader, branch)
     # SetEntry returns kEntryValid=0 on success; treat any non-zero as failure
@@ -116,51 +127,80 @@ def read_simchannels(ROOT, tree, branch, entry, ch_min, ch_max, tick_min, tick_m
         sys.exit(f"Entry {entry} not found; SimChannels branch: {branch!r}")
 
     deposits = defaultdict(lambda: defaultdict(float))
+    charge_all = 0.0
+    energy_all = 0.0
+    charge_in_range = 0.0
+    energy_in_range = 0.0
     n = simchs.GetSize()
     print(f"  SimChannels: {n} objects in branch", file=sys.stderr)
 
     for i in range(n):
         sc = simchs.At(i)
         ch = int(sc.Channel())
-        if ch_min is not None and ch < ch_min:
-            continue
-        if ch_max is not None and ch > ch_max:
-            continue
+        ch_in = (ch_min is None or ch >= ch_min) and (ch_max is None or ch <= ch_max)
         for pair in sc.TDCIDEMap():
             tdc = int(pair.first)
-            if tick_min is not None and tdc < tick_min:
-                continue
-            if tick_max is not None and tdc > tick_max:
-                continue
-            charge = sum(ide.numElectrons for ide in pair.second)
-            deposits[ch][tdc] += charge
+            charge = 0.0
+            energy = 0.0
+            for ide in pair.second:
+                charge += ide.numElectrons
+                energy += ide.energy
+            charge_all += charge
+            energy_all += energy
+            tdc_in = (tick_min is None or tdc >= tick_min) and (tick_max is None or tdc <= tick_max)
+            if ch_in and tdc_in:
+                charge_in_range += charge
+                energy_in_range += energy
+                deposits[ch][tdc] += charge
 
     print(f"  SimChannels: {len(deposits)} channels with deposits after filter", file=sys.stderr)
-    return deposits
+    totals = dict(
+        charge_all=charge_all,
+        energy_all=energy_all,
+        charge_in_range=charge_in_range,
+        energy_in_range=energy_in_range,
+    )
+    return deposits, totals
 
 
-def read_wires(ROOT, tree, branch, entry, ch_min, ch_max):
-    """Return dict {channel: np.ndarray} with full signal per channel (unfiltered in tick)."""
+def read_wires(ROOT, tree, branch, entry, ch_min, ch_max, tick_min, tick_max):
+    """Return (wire_data, totals).
+
+    wire_data: dict {channel: np.ndarray} with full signal per channel, channel-filtered.
+    totals: dict with adc_all (sum over every wire / every tick) and adc_in_range
+      (channel-filtered and tick-window-restricted).
+    """
     reader = ROOT.TTreeReader(tree)
     wires = ROOT.TTreeReaderArray("recob::Wire")(reader, branch)
     if reader.SetEntry(entry) != 0:
         sys.exit(f"Entry {entry} not found; Wire branch: {branch!r}")
 
     wire_data = {}
+    adc_all = 0.0
+    adc_in_range = 0.0
     n = wires.GetSize()
     print(f"  recob::Wire: {n} objects in branch", file=sys.stderr)
 
     for i in range(n):
         w = wires.At(i)
         ch = int(w.Channel())
+        sig = _vec_to_numpy(w.Signal())
+        adc_all += float(sig.sum())
         if ch_min is not None and ch < ch_min:
             continue
         if ch_max is not None and ch > ch_max:
             continue
-        wire_data[ch] = _vec_to_numpy(w.Signal())
+        wire_data[ch] = sig
+        lo = tick_min if tick_min is not None else 0
+        hi = (tick_max + 1) if tick_max is not None else len(sig)
+        lo = max(0, lo)
+        hi = min(len(sig), hi)
+        if lo < hi:
+            adc_in_range += float(sig[lo:hi].sum())
 
     print(f"  recob::Wire: {len(wire_data)} channels after filter", file=sys.stderr)
-    return wire_data
+    totals = dict(adc_all=adc_all, adc_in_range=adc_in_range)
+    return wire_data, totals
 
 
 def choose_range(label, req_min, req_max, values):
@@ -248,7 +288,7 @@ def show_2d_only(simch_arr, wire_arr, ch_range, tick_range, args):
         simch_arr.T, extent=extent, **_imshow_kwargs(simch_arr, args.cmap, args.vmax_percentile)
     )
     fig.colorbar(im0, ax=ax_sc, label="electrons", pad=0.02)
-    ax_sc.set_title("sim::SimChannels (simpleSC)")
+    ax_sc.set_title(f"sim::SimChannels ({args.simch_tag})")
     ax_sc.set_xlabel("Channel")
     ax_sc.set_ylabel("Tick (TDC)")
 
@@ -260,7 +300,10 @@ def show_2d_only(simch_arr, wire_arr, ch_range, tick_range, args):
     ax_wr.set_xlabel("Channel")
     ax_wr.set_ylabel("Tick")
 
-    fig.suptitle(f"{args.input}  entry={args.entry}  wire={args.wire_tag}", fontsize=10)
+    fig.suptitle(
+        f"{args.input}  entry={args.entry}  simch={args.simch_tag}  wire={args.wire_tag}",
+        fontsize=10,
+    )
     plt.tight_layout()
     plt.show()
 
@@ -280,7 +323,7 @@ def show_interactive(simch_arr, wire_arr, ch_range, tick_range, args):
         simch_arr.T, extent=extent, **_imshow_kwargs(simch_arr, args.cmap, args.vmax_percentile)
     )
     fig.colorbar(im0, ax=ax_sc, label="electrons", pad=0.02)
-    ax_sc.set_title("sim::SimChannels (simpleSC)")
+    ax_sc.set_title(f"sim::SimChannels ({args.simch_tag})")
     ax_sc.set_xlabel("Channel")
     ax_sc.set_ylabel("Tick (TDC)")
 
@@ -357,7 +400,8 @@ def show_interactive(simch_arr, wire_arr, ch_range, tick_range, args):
 
     fig.canvas.mpl_connect("button_press_event", on_click)
     fig.suptitle(
-        f"{args.input}  entry={args.entry}  wire={args.wire_tag}", fontsize=10
+        f"{args.input}  entry={args.entry}  simch={args.simch_tag}  wire={args.wire_tag}",
+        fontsize=10,
     )
     plt.tight_layout()
     plt.show()
@@ -370,7 +414,7 @@ def save_static(simch_arr, wire_arr, ch_range, tick_range, args):
     prefix = args.out_prefix
 
     panels = [
-        (simch_arr, "simch_simpleSC", "electrons"),
+        (simch_arr, f"simch_{args.simch_tag}", "electrons"),
         (wire_arr, f"wire_{args.wire_tag}", f"ADC ({args.wire_tag})"),
     ]
     for arr, label, unit in panels:
@@ -394,22 +438,38 @@ def save_static(simch_arr, wire_arr, ch_range, tick_range, args):
 
 def main():
     args = parse_args()
+    simch_branch = args.simch_branch or _SIMCH_BRANCH_TEMPLATE.format(tag=args.simch_tag)
     wire_branch = args.wire_branch or _WIRE_BRANCH_TEMPLATE.format(tag=args.wire_tag)
 
     ROOT = import_root()
     f, tree = open_tree(ROOT, args.input)
 
     print("Reading SimChannels...", file=sys.stderr)
-    deposits = read_simchannels(
-        ROOT, tree, args.simch_branch, args.entry,
+    deposits, sc_totals = read_simchannels(
+        ROOT, tree, simch_branch, args.entry,
         args.channel_min, args.channel_max, args.tick_min, args.tick_max,
     )
 
     print("Reading recob::Wire...", file=sys.stderr)
-    wire_data = read_wires(
+    wire_data, wire_totals = read_wires(
         ROOT, tree, wire_branch, args.entry,
-        args.channel_min, args.channel_max,
+        args.channel_min, args.channel_max, args.tick_min, args.tick_max,
     )
+
+    ch_filt = (args.channel_min, args.channel_max)
+    tk_filt = (args.tick_min, args.tick_max)
+    print("=" * 60)
+    print("Totals:")
+    print(f"  1. SimChannels charge (all):       {sc_totals['charge_all']:.6g} e-")
+    print(f"  2. SimChannels energy (all):       {sc_totals['energy_all']:.6g} MeV")
+    print(f"  3. recob::Wire ADC (all):          {wire_totals['adc_all']:.6g} ADC*tick")
+    print(f"  4. SimChannels charge in ch={ch_filt}, tick={tk_filt}: "
+          f"{sc_totals['charge_in_range']:.6g} e-")
+    print(f"  5. SimChannels energy in ch={ch_filt}, tick={tk_filt}: "
+          f"{sc_totals['energy_in_range']:.6g} MeV")
+    print(f"  6. recob::Wire ADC in ch={ch_filt}, tick={tk_filt}:    "
+          f"{wire_totals['adc_in_range']:.6g} ADC*tick")
+    print("=" * 60)
 
     all_chs = list(deposits.keys()) + list(wire_data.keys())
     if not all_chs:

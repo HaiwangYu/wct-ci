@@ -34,7 +34,8 @@ python ../../visualization-utilities/plot_detsim.py \
 # single-sp
 python ../../visualization-utilities/plot_detsim.py \
   --input detsim.root \
-  --wire-tag gauss28 \
+  --simch-tag simpleSCtpc28 \
+  --wire-tag gausstpc28 \
   --channel-min 24300 --channel-max 24400 \
   --tick-min 4500 --tick-max 5500 \
   --vmax-percentile 90.0 \
