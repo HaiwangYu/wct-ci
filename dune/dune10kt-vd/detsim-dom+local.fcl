@@ -125,7 +125,7 @@ physics: {
             outputers: [
                "wclsDepoFluxWriter:postdrift",
                "wclsFrameSaver:spsignals"
-               # , "wclsFrameSaver:simdigits"
+               , "wclsFrameSaver:simdigits"
             ]
             params: {
                files_fields: "dunevd-resp-isoc3views-18d92.json.bz2"

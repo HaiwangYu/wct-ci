@@ -31,11 +31,26 @@ python ../../visualization-utilities/plot_detsim.py \
   --cmap YlOrRd \
   --interactive
 
-# single-sp
+# full-sim-sp
+python ../../visualization-utilities/plot_detsim.py \
+  --input detsim.root \
+  --simch-tag simpleSC \
+  --wire-tag gauss \
+  --draw-rawdigits \
+  --rawdigit-tag daqtpc28 \
+  --channel-min 24300 --channel-max 24400 \
+  --tick-min 4500 --tick-max 5500 \
+  --vmax-percentile 90.0 \
+  --cmap YlOrRd \
+  --interactive
+
+# single-sim-sp, APA29
 python ../../visualization-utilities/plot_detsim.py \
   --input detsim.root \
   --simch-tag simpleSCtpc28 \
   --wire-tag gausstpc28 \
+  --draw-rawdigits \
+  --rawdigit-tag daqtpc28 \
   --channel-min 24300 --channel-max 24400 \
   --tick-min 4500 --tick-max 5500 \
   --vmax-percentile 90.0 \

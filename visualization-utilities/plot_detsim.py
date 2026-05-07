@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Visualize artROOT detsim files: SimChannels and recob::Wire 2D/1D.
+"""Visualize artROOT detsim files: SimChannels, recob::Wire, raw::RawDigit.
 
 Default: opens a window with two 2D heatmaps (SimChannels + Wire).
 
-With --interactive: adds a 1D waveform panel below; click on either 2D
+With --draw-rawdigits: adds a third 2D panel showing pedestal-subtracted
+  raw::RawDigit waveforms; in --interactive mode the 1D panel overlays
+  all three (simchannel, wire, rawdigit).
+
+With --interactive: adds a 1D waveform panel below; click on any 2D
   plot to display the waveform for that channel.
 
 With --out-prefix PREFIX: saves PDFs and .npy arrays, no GUI.
@@ -13,7 +17,7 @@ Example:
       --channel-min 0 --channel-max 2000 --tick-min 0 --tick-max 4095
 
   python plot_detsim.py --input ../dune/dune10kt-vd/detsim.root \\
-      --channel-min 0 --channel-max 2000 --interactive
+      --channel-min 0 --channel-max 2000 --interactive --draw-rawdigits
 """
 
 import argparse
@@ -28,6 +32,8 @@ DEFAULT_SIMCH_TAG = "simpleSC"
 _SIMCH_BRANCH_TEMPLATE = "sim::SimChannels_tpcrawdecoder_{tag}_detsim.obj"
 DEFAULT_WIRE_TAG = "gauss"
 _WIRE_BRANCH_TEMPLATE = "recob::Wires_tpcrawdecoder_{tag}_detsim.obj"
+DEFAULT_RAWDIGIT_TAG = "daq"
+_RAWDIGIT_BRANCH_TEMPLATE = "raw::RawDigits_tpcrawdecoder_{tag}_detsim.obj"
 
 # Warn if the dense array would exceed this many elements
 _ARRAY_WARN_LIMIT = 500_000_000
@@ -60,6 +66,23 @@ def parse_args():
         "--wire-branch",
         default=None,
         help="Override wire branch name directly (overrides --wire-tag)",
+    )
+    p.add_argument(
+        "--draw-rawdigits",
+        action="store_true",
+        help="Also read and display raw::RawDigit waveforms (adds a 3rd 2D panel; "
+             "the 1D panel shows simchannel, wire, and rawdigit overlaid). Default off.",
+    )
+    p.add_argument(
+        "--rawdigit-tag",
+        default=DEFAULT_RAWDIGIT_TAG,
+        metavar="TAG",
+        help=f"raw::RawDigit product instance tag (default: {DEFAULT_RAWDIGIT_TAG})",
+    )
+    p.add_argument(
+        "--rawdigit-branch",
+        default=None,
+        help="Override RawDigit branch name directly (overrides --rawdigit-tag)",
     )
     p.add_argument("--channel-min", type=int, default=None, metavar="N")
     p.add_argument("--channel-max", type=int, default=None, metavar="N")
@@ -203,6 +226,79 @@ def read_wires(ROOT, tree, branch, entry, ch_min, ch_max, tick_min, tick_max):
     return wire_data, totals
 
 
+def _short_vec_to_numpy(vec):
+    try:
+        return np.frombuffer(vec.data(), dtype=np.int16, count=vec.size()).astype(
+            np.float32, copy=True
+        )
+    except Exception:
+        return np.array([vec[j] for j in range(vec.size())], dtype=np.float32)
+
+
+def read_rawdigits(ROOT, tree, branch, entry, ch_min, ch_max, tick_min, tick_max):
+    """Return (rd_data, totals).
+
+    rd_data: dict {channel: np.ndarray} of pedestal-subtracted, uncompressed
+      ADC waveforms, channel-filtered.
+    totals: dict with adc_all and adc_in_range (pedestal-subtracted, summed).
+    Compression is uncompressed via raw::Uncompress when not kNone (==0).
+    """
+    reader = ROOT.TTreeReader(tree)
+    digits = ROOT.TTreeReaderArray("raw::RawDigit")(reader, branch)
+    if reader.SetEntry(entry) != 0:
+        sys.exit(f"Entry {entry} not found; RawDigit branch: {branch!r}")
+
+    rd_data = {}
+    adc_all = 0.0
+    adc_in_range = 0.0
+    n = digits.GetSize()
+    print(f"  raw::RawDigit: {n} objects in branch", file=sys.stderr)
+
+    uncomp_buf = ROOT.std.vector("short")()
+    warned_compress = False
+
+    for i in range(n):
+        rd = digits.At(i)
+        ch = int(rd.Channel())
+        nsamp = int(rd.Samples())
+        comp = int(rd.Compression())
+        if comp == 0:
+            sig = _short_vec_to_numpy(rd.ADCs())
+        else:
+            uncomp_buf.clear()
+            uncomp_buf.resize(nsamp)
+            try:
+                ROOT.raw.Uncompress(rd.ADCs(), uncomp_buf, rd.Compression())
+                sig = _short_vec_to_numpy(uncomp_buf)
+            except Exception:
+                if not warned_compress:
+                    print(
+                        f"  WARNING: cannot call raw::Uncompress (compression={comp}); "
+                        "falling back to raw ADCs (may be compressed)",
+                        file=sys.stderr,
+                    )
+                    warned_compress = True
+                sig = _short_vec_to_numpy(rd.ADCs())
+        ped = float(rd.GetPedestal())
+        sig = sig - ped
+        adc_all += float(sig.sum())
+        if ch_min is not None and ch < ch_min:
+            continue
+        if ch_max is not None and ch > ch_max:
+            continue
+        rd_data[ch] = sig
+        lo = tick_min if tick_min is not None else 0
+        hi = (tick_max + 1) if tick_max is not None else len(sig)
+        lo = max(0, lo)
+        hi = min(len(sig), hi)
+        if lo < hi:
+            adc_in_range += float(sig[lo:hi].sum())
+
+    print(f"  raw::RawDigit: {len(rd_data)} channels after filter", file=sys.stderr)
+    totals = dict(adc_all=adc_all, adc_in_range=adc_in_range)
+    return rd_data, totals
+
+
 def choose_range(label, req_min, req_max, values):
     lo = req_min if req_min is not None else int(min(values))
     hi = req_max if req_max is not None else int(max(values))
@@ -276,71 +372,92 @@ def _imshow_kwargs(arr, cmap, vmax_percentile):
     )
 
 
-def show_2d_only(simch_arr, wire_arr, ch_range, tick_range, args):
-    """Display SimChannels and Wire as two stacked 2D heatmaps, no click handler."""
+def _draw_2d_panel(ax, arr, extent, title, cbar_label, cmap, vmax_percentile, fig):
+    im = ax.imshow(arr.T, extent=extent, **_imshow_kwargs(arr, cmap, vmax_percentile))
+    fig.colorbar(im, ax=ax, label=cbar_label, pad=0.02)
+    ax.set_title(title)
+    ax.set_xlabel("Channel")
+    ax.set_ylabel("Tick")
+    return im
+
+
+def show_2d_only(simch_arr, wire_arr, rd_arr, ch_range, tick_range, args):
+    """Display 2 (or 3) stacked 2D heatmaps, no click handler."""
     ch_lo, ch_hi = ch_range
     tick_lo, tick_hi = tick_range
     extent = [ch_lo - 0.5, ch_hi + 0.5, tick_lo - 0.5, tick_hi + 0.5]
 
-    fig, (ax_sc, ax_wr) = plt.subplots(2, 1, figsize=(14, 8))
+    nrows = 3 if rd_arr is not None else 2
+    fig, axes = plt.subplots(nrows, 1, figsize=(14, 4 * nrows))
+    if nrows == 2:
+        ax_sc, ax_wr = axes
+    else:
+        ax_sc, ax_wr, ax_rd = axes
 
-    im0 = ax_sc.imshow(
-        simch_arr.T, extent=extent, **_imshow_kwargs(simch_arr, args.cmap, args.vmax_percentile)
-    )
-    fig.colorbar(im0, ax=ax_sc, label="electrons", pad=0.02)
-    ax_sc.set_title(f"sim::SimChannels ({args.simch_tag})")
-    ax_sc.set_xlabel("Channel")
-    ax_sc.set_ylabel("Tick (TDC)")
+    _draw_2d_panel(ax_sc, simch_arr, extent,
+                   f"sim::SimChannels ({args.simch_tag})", "electrons",
+                   args.cmap, args.vmax_percentile, fig)
+    _draw_2d_panel(ax_wr, wire_arr, extent,
+                   f"recob::Wire ({args.wire_tag})",
+                   f"ADC — recob::Wire ({args.wire_tag})",
+                   args.cmap, args.vmax_percentile, fig)
+    if rd_arr is not None:
+        _draw_2d_panel(ax_rd, rd_arr, extent,
+                       f"raw::RawDigit ({args.rawdigit_tag}, ped-subtracted)",
+                       f"ADC — raw::RawDigit ({args.rawdigit_tag})",
+                       args.cmap, args.vmax_percentile, fig)
 
-    im1 = ax_wr.imshow(
-        wire_arr.T, extent=extent, **_imshow_kwargs(wire_arr, args.cmap, args.vmax_percentile)
+    suptitle = (
+        f"{args.input}  entry={args.entry}  simch={args.simch_tag}  wire={args.wire_tag}"
     )
-    fig.colorbar(im1, ax=ax_wr, label=f"ADC — recob::Wire ({args.wire_tag})", pad=0.02)
-    ax_wr.set_title(f"recob::Wire ({args.wire_tag})")
-    ax_wr.set_xlabel("Channel")
-    ax_wr.set_ylabel("Tick")
-
-    fig.suptitle(
-        f"{args.input}  entry={args.entry}  simch={args.simch_tag}  wire={args.wire_tag}",
-        fontsize=10,
-    )
+    if rd_arr is not None:
+        suptitle += f"  rawdigit={args.rawdigit_tag}"
+    fig.suptitle(suptitle, fontsize=10)
     plt.tight_layout()
     plt.show()
 
 
-def show_interactive(simch_arr, wire_arr, ch_range, tick_range, args):
+def show_interactive(simch_arr, wire_arr, rd_arr, ch_range, tick_range, args):
     ch_lo, ch_hi = ch_range
     tick_lo, tick_hi = tick_range
     extent = [ch_lo - 0.5, ch_hi + 0.5, tick_lo - 0.5, tick_hi + 0.5]
     tick_axis = np.arange(tick_lo, tick_hi + 1)
 
-    fig, axes = plt.subplots(
-        3, 1, figsize=(14, 11), gridspec_kw={"height_ratios": [2, 2, 1.2]}
-    )
-    ax_sc, ax_wr, ax_1d = axes
+    has_rd = rd_arr is not None
+    if has_rd:
+        fig, axes = plt.subplots(
+            4, 1, figsize=(14, 13), gridspec_kw={"height_ratios": [2, 2, 2, 1.4]}
+        )
+        ax_sc, ax_wr, ax_rd, ax_1d = axes
+    else:
+        fig, axes = plt.subplots(
+            3, 1, figsize=(14, 11), gridspec_kw={"height_ratios": [2, 2, 1.2]}
+        )
+        ax_sc, ax_wr, ax_1d = axes
+        ax_rd = None
 
-    im0 = ax_sc.imshow(
-        simch_arr.T, extent=extent, **_imshow_kwargs(simch_arr, args.cmap, args.vmax_percentile)
-    )
-    fig.colorbar(im0, ax=ax_sc, label="electrons", pad=0.02)
-    ax_sc.set_title(f"sim::SimChannels ({args.simch_tag})")
-    ax_sc.set_xlabel("Channel")
-    ax_sc.set_ylabel("Tick (TDC)")
+    _draw_2d_panel(ax_sc, simch_arr, extent,
+                   f"sim::SimChannels ({args.simch_tag})", "electrons",
+                   args.cmap, args.vmax_percentile, fig)
+    _draw_2d_panel(ax_wr, wire_arr, extent,
+                   f"recob::Wire ({args.wire_tag})",
+                   f"ADC — recob::Wire ({args.wire_tag})",
+                   args.cmap, args.vmax_percentile, fig)
+    if has_rd:
+        _draw_2d_panel(ax_rd, rd_arr, extent,
+                       f"raw::RawDigit ({args.rawdigit_tag}, ped-subtracted)",
+                       f"ADC — raw::RawDigit ({args.rawdigit_tag})",
+                       args.cmap, args.vmax_percentile, fig)
 
-    im1 = ax_wr.imshow(
-        wire_arr.T, extent=extent, **_imshow_kwargs(wire_arr, args.cmap, args.vmax_percentile)
-    )
-    fig.colorbar(im1, ax=ax_wr, label=f"ADC — recob::Wire ({args.wire_tag})", pad=0.02)
-    ax_wr.set_title(f"recob::Wire ({args.wire_tag})")
-    ax_wr.set_xlabel("Channel")
-    ax_wr.set_ylabel("Tick")
-
-    ax_1d.set_title("1D waveform — click on either 2D plot to select channel")
+    ax_1d.set_title("1D waveform — click on any 2D plot to select channel")
     ax_1d.set_xlabel("Tick")
 
-    vline_sc = ax_sc.axvline(x=ch_lo, color="cyan", lw=0.8, ls="--", visible=False)
-    vline_wr = ax_wr.axvline(x=ch_lo, color="cyan", lw=0.8, ls="--", visible=False)
+    vlines = [ax_sc.axvline(x=ch_lo, color="cyan", lw=0.8, ls="--", visible=False),
+              ax_wr.axvline(x=ch_lo, color="cyan", lw=0.8, ls="--", visible=False)]
+    if has_rd:
+        vlines.append(ax_rd.axvline(x=ch_lo, color="cyan", lw=0.8, ls="--", visible=False))
 
+    click_axes = (ax_sc, ax_wr) + ((ax_rd,) if has_rd else ())
     twin_state = {"ax2": None}
 
     def update_1d(ch):
@@ -359,38 +476,48 @@ def show_interactive(simch_arr, wire_arr, ch_range, tick_range, args):
         simch_integral = float(simch_arr[idx].sum())
         wire_integral = float(wire_arr[idx].sum())
 
-        ax_1d.plot(tick_axis, simch_arr[idx], color="darkorange", lw=0.9,
-                   label=f"SimCh ch={ch}  ∫={simch_integral:.3g} e⁻")
-        ax_1d.set_ylabel("electrons", color="darkorange")
-        ax_1d.tick_params(axis="y", labelcolor="darkorange")
+        # Left axis: ADC waveforms (wire + optional rawdigit)
+        ax_1d.plot(tick_axis, wire_arr[idx], color="steelblue", lw=0.9,
+                   label=f"Wire ({args.wire_tag}) ch={ch}  ∫={wire_integral:.3g} ADC·tick")
+        if has_rd:
+            rd_integral = float(rd_arr[idx].sum())
+            ax_1d.plot(tick_axis, rd_arr[idx], color="forestgreen", lw=0.7, alpha=0.8,
+                       label=f"RawDigit ({args.rawdigit_tag}) ch={ch}  "
+                             f"∫={rd_integral:.3g} ADC·tick")
+        ax_1d.set_ylabel("ADC", color="steelblue")
+        ax_1d.tick_params(axis="y", labelcolor="steelblue")
+        ax_1d.axhline(0, color="black", lw=0.3, ls=":")
 
+        # Right (twin) axis: SimChannels electrons
         ax2 = ax_1d.twinx()
         twin_state["ax2"] = ax2
-        ax2.plot(tick_axis, wire_arr[idx], color="steelblue", lw=0.9,
-                 label=f"Wire ({args.wire_tag}) ch={ch}  ∫={wire_integral:.3g} ADC·tick")
-        ax2.set_ylabel(f"ADC ({args.wire_tag})", color="steelblue")
-        ax2.tick_params(axis="y", labelcolor="steelblue")
+        ax2.plot(tick_axis, simch_arr[idx], color="darkorange", lw=0.9,
+                 label=f"SimCh ch={ch}  ∫={simch_integral:.3g} e⁻")
+        ax2.set_ylabel("electrons", color="darkorange")
+        ax2.tick_params(axis="y", labelcolor="darkorange")
 
-        ax_1d.set_title(
+        title = (
             f"Channel {ch}   "
             f"∫SimCh = {simch_integral:.4g} e⁻   "
             f"∫Wire({args.wire_tag}) = {wire_integral:.4g} ADC·tick"
         )
+        if has_rd:
+            title += f"   ∫RawDigit({args.rawdigit_tag}) = {float(rd_arr[idx].sum()):.4g} ADC·tick"
+        ax_1d.set_title(title)
         ax_1d.set_xlabel("Tick")
 
-        # Combined legend
         lines1, labels1 = ax_1d.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
         ax_1d.legend(lines1 + lines2, labels1 + labels2, loc="upper right", fontsize=8)
 
-        for vl, xval in [(vline_sc, ch), (vline_wr, ch)]:
-            vl.set_xdata([xval, xval])
+        for vl in vlines:
+            vl.set_xdata([ch, ch])
             vl.set_visible(True)
 
         fig.canvas.draw_idle()
 
     def on_click(event):
-        if event.inaxes not in (ax_sc, ax_wr):
+        if event.inaxes not in click_axes:
             return
         if event.xdata is None:
             return
@@ -399,15 +526,17 @@ def show_interactive(simch_arr, wire_arr, ch_range, tick_range, args):
         update_1d(ch)
 
     fig.canvas.mpl_connect("button_press_event", on_click)
-    fig.suptitle(
-        f"{args.input}  entry={args.entry}  simch={args.simch_tag}  wire={args.wire_tag}",
-        fontsize=10,
+    suptitle = (
+        f"{args.input}  entry={args.entry}  simch={args.simch_tag}  wire={args.wire_tag}"
     )
+    if has_rd:
+        suptitle += f"  rawdigit={args.rawdigit_tag}"
+    fig.suptitle(suptitle, fontsize=10)
     plt.tight_layout()
     plt.show()
 
 
-def save_static(simch_arr, wire_arr, ch_range, tick_range, args):
+def save_static(simch_arr, wire_arr, rd_arr, ch_range, tick_range, args):
     ch_lo, ch_hi = ch_range
     tick_lo, tick_hi = tick_range
     extent = [ch_lo - 0.5, ch_hi + 0.5, tick_lo - 0.5, tick_hi + 0.5]
@@ -417,6 +546,9 @@ def save_static(simch_arr, wire_arr, ch_range, tick_range, args):
         (simch_arr, f"simch_{args.simch_tag}", "electrons"),
         (wire_arr, f"wire_{args.wire_tag}", f"ADC ({args.wire_tag})"),
     ]
+    if rd_arr is not None:
+        panels.append((rd_arr, f"rawdigit_{args.rawdigit_tag}",
+                       f"ADC ({args.rawdigit_tag}, ped-sub)"))
     for arr, label, unit in panels:
         fig, ax = plt.subplots(figsize=(14, 5))
         im = ax.imshow(
@@ -440,6 +572,10 @@ def main():
     args = parse_args()
     simch_branch = args.simch_branch or _SIMCH_BRANCH_TEMPLATE.format(tag=args.simch_tag)
     wire_branch = args.wire_branch or _WIRE_BRANCH_TEMPLATE.format(tag=args.wire_tag)
+    rawdigit_branch = (
+        args.rawdigit_branch
+        or _RAWDIGIT_BRANCH_TEMPLATE.format(tag=args.rawdigit_tag)
+    )
 
     ROOT = import_root()
     f, tree = open_tree(ROOT, args.input)
@@ -456,6 +592,15 @@ def main():
         args.channel_min, args.channel_max, args.tick_min, args.tick_max,
     )
 
+    rd_data = None
+    rd_totals = None
+    if args.draw_rawdigits:
+        print("Reading raw::RawDigits...", file=sys.stderr)
+        rd_data, rd_totals = read_rawdigits(
+            ROOT, tree, rawdigit_branch, args.entry,
+            args.channel_min, args.channel_max, args.tick_min, args.tick_max,
+        )
+
     ch_filt = (args.channel_min, args.channel_max)
     tk_filt = (args.tick_min, args.tick_max)
     print("=" * 60)
@@ -469,14 +614,23 @@ def main():
           f"{sc_totals['energy_in_range']:.6g} MeV")
     print(f"  6. recob::Wire ADC in ch={ch_filt}, tick={tk_filt}:    "
           f"{wire_totals['adc_in_range']:.6g} ADC*tick")
+    if rd_totals is not None:
+        print(f"  7. raw::RawDigit ADC (all, ped-sub):       "
+              f"{rd_totals['adc_all']:.6g} ADC*tick")
+        print(f"  8. raw::RawDigit ADC in ch={ch_filt}, tick={tk_filt}: "
+              f"{rd_totals['adc_in_range']:.6g} ADC*tick")
     print("=" * 60)
 
     all_chs = list(deposits.keys()) + list(wire_data.keys())
+    if rd_data is not None:
+        all_chs += list(rd_data.keys())
     if not all_chs:
         sys.exit("No channels found in the requested range.")
 
     all_tdcs = [tdc for d in deposits.values() for tdc in d]
     wire_ticks = [len(sig) - 1 for sig in wire_data.values() if len(sig) > 0]
+    if rd_data is not None:
+        wire_ticks += [len(sig) - 1 for sig in rd_data.values() if len(sig) > 0]
 
     ch_range = choose_range("channel", args.channel_min, args.channel_max, all_chs)
 
@@ -489,13 +643,14 @@ def main():
     print("Building dense arrays...", file=sys.stderr)
     simch_arr = build_simch_array(deposits, ch_range, tick_range)
     wire_arr = build_wire_array(wire_data, ch_range, tick_range)
+    rd_arr = build_wire_array(rd_data, ch_range, tick_range) if rd_data is not None else None
 
     if args.out_prefix:
-        save_static(simch_arr, wire_arr, ch_range, tick_range, args)
+        save_static(simch_arr, wire_arr, rd_arr, ch_range, tick_range, args)
     elif args.interactive:
-        show_interactive(simch_arr, wire_arr, ch_range, tick_range, args)
+        show_interactive(simch_arr, wire_arr, rd_arr, ch_range, tick_range, args)
     else:
-        show_2d_only(simch_arr, wire_arr, ch_range, tick_range, args)
+        show_2d_only(simch_arr, wire_arr, rd_arr, ch_range, tick_range, args)
 
     f.Close()
 
