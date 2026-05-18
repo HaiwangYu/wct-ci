@@ -33,7 +33,7 @@ python ../../visualization-utilities/plot_detsim.py \
 
 # full-sim-sp
 python ../../visualization-utilities/plot_detsim.py \
-  --input detsim.root \
+  --input full-sim-sp-may8/detsim.root \
   --simch-tag simpleSC \
   --wire-tag gauss \
   --draw-rawdigits \

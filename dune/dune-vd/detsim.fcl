@@ -124,9 +124,9 @@ physics: {
             ]
             outputers: [
                "wclsDepoFluxWriter:postdrift",
-               "wclsFrameSaver:spsignals",
-            #    "wclsFrameSaver:simdigits"
-               "wclsFrameSaver:simdigits0",
+               "wclsFrameSaver:spsignals"
+            #    , "wclsFrameSaver:simdigits"
+               , "wclsFrameSaver:simdigits0",
                "wclsFrameSaver:simdigits1",
                "wclsFrameSaver:simdigits2",
                "wclsFrameSaver:simdigits3",
