@@ -48,7 +48,7 @@ The final report is written to:
 
 Example — test PR 467 after merging it into current `master`:
 ```bash
-./run-ci.sh --ref master --pr 467 --merge-pr
+./run-ci.sh --ref master --pr 451 --merge-pr
 ```
 
 Example — re-run gen/sigproc only, skipping build and unit tests:

@@ -73,6 +73,7 @@ env CC=gcc CXX=g++ FC=gfortran \
     --with-triton-include="$TRITON_INC" \
     --with-triton-lib="$TRITON_LIB" \
     --with-libtorch="$LIBTORCH_FQ_DIR/" \
+    --with-libtorch-include="$LIBTORCH_FQ_DIR/include,$LIBTORCH_FQ_DIR/include/torch/csrc/api/include" \
     --with-libtorch-libs torch,torch_cpu,c10 \
     --prefix="$INSTALL_DIR"
 
