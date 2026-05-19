@@ -11,5 +11,17 @@
 *.pptx
 *.pdf
 *.npz
+*.err
+*.out
+*.meta
+*.txt
+*.fcl
+*.pid
+*.ts
+*.time
+*.jsonnet
+massif.*
 tmp
 cfg
+ts-model
+cosmics

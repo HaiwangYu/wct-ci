@@ -1,7 +1,9 @@
 # Dom's setup script for dune10kt-vd
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
-setup dunesw v10_14_00d00 -q e26:prof
-source /exp/dune/app/users/dbrailsf/10kt/vd/localProducts_larsoft_v10_14_00_e26_prof/setup
+# setup dunesw v10_14_00d00 -q e26:prof
+# source /exp/dune/app/users/dbrailsf/10kt/vd/localProducts_larsoft_v10_14_00_e26_prof/setup
+setup dunesw v10_20_03d00 -q e26:prof
+source /exp/dune/app/users/dbrailsf/10kt/vd/localProducts_larsoft_v10_20_03_e26_prof/setup
 mrbslp
 
 # local dunereco
