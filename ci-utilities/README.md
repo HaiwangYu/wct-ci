@@ -28,13 +28,15 @@ At the end, `run-ci.sh` prints the exact command for step 2.
 **Step 2 — outside the container** (merge PDFs into report):
 ```bash
 cd /exp/dune/app/users/yuhw/wct-ci/ci-utilities
-./make-report.sh /exp/dune/app/users/yuhw/wct-pr-testing/run-<timestamp>-pr<N> <PR_number>
+./make-report.sh <run_dir>
 ```
+`run-ci.sh` writes a `ci-meta.env` into the run directory, so `make-report.sh`
+only needs the run directory (the trailing PR number is optional, kept for
+backward compatibility with old runs that have no `ci-meta.env`).
 
-The final report is written to:
-```
-/exp/dune/app/users/yuhw/wct-pr-testing/run-<timestamp>-pr<N>/report-pr<N>.pdf
-```
+The final report is written into the run directory as `report-<label>.pdf`
+(`report-pr<N>.pdf` for PR runs, `report-<target>-vs-<ref>.pdf` for
+`--target-ref` runs).
 
 ## Options
 
@@ -42,13 +44,23 @@ The final report is written to:
 |------|-------------|
 | `--ref <tag\|master>` | Reference to build and compare against (e.g. `master`, `0.33.0`) |
 | `--pr <N>` | GitHub PR number to test |
-| `--merge-pr` | Test the PR as `<ref>` plus the PR head merged in, instead of testing the PR head directly |
+| `--target-ref <ref>` | Test an arbitrary ref (tag/master/branch) against `--ref` instead of a PR. Mutually exclusive with `--pr`. |
+| `--merge-pr` | Test the PR as `<ref>` plus the PR head merged in, instead of testing the PR head directly (PR mode only) |
 | `--skip-build` | Skip clone, configure, and build entirely; use existing installs in the work dir |
-| `--skip-tests` | Skip `./wcb --tests --alltests` for ref and PR; jump straight to gen/sigproc validation |
+| `--skip-tests` | Skip `./wcb --tests --alltests` for ref and target; jump straight to gen/sigproc validation |
 
-Example — test PR 467 after merging it into current `master`:
+The side under test is called the **target**. It is either a GitHub PR (`--pr`)
+or an arbitrary ref (`--target-ref`).
+
+Example — test PR 451 after merging it into current `master`:
 ```bash
 ./run-ci.sh --ref master --pr 451 --merge-pr
+```
+
+Example — compare current `master` against the `0.36.1` release
+(`--ref` is the baseline, `--target-ref` is the side under test):
+```bash
+./run-ci.sh --ref 0.36.1 --target-ref master
 ```
 
 Example — re-run gen/sigproc only, skipping build and unit tests:

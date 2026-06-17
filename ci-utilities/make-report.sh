@@ -1,17 +1,30 @@
 #!/usr/bin/env bash
 # Post-processing step - run OUTSIDE the container.
-# Merges the PR review, compact test summaries, and validation PDFs into one report.
-# Usage: ./make-report.sh <run_dir> <PR_number>
+# Merges the review, compact test summaries, and validation PDFs into one report.
+# Usage: ./make-report.sh <run_dir> [<PR_number>]
+#
+# Path/label resolution: if <run_dir>/ci-meta.env exists (written by run-ci.sh)
+# it is sourced for REF_SRC, PR_SRC, TITLE and REPORT_LABEL. Otherwise the legacy
+# behavior is used and a PR number must be supplied as the second argument.
 set -euo pipefail
 
 RUN_DIR="$1"
-PR_N="$2"
+PR_N="${2:-}"
 
 WORK_DIR="$(dirname "$RUN_DIR")"
-REF_INSTALL="$WORK_DIR/ref-install"
-PR_INSTALL="$WORK_DIR/pr-${PR_N}-install"
-REF_SRC="$WORK_DIR/ref-src"
-PR_SRC="$WORK_DIR/pr-${PR_N}-src"
+
+if [[ -f "$RUN_DIR/ci-meta.env" ]]; then
+    # shellcheck disable=SC1090
+    source "$RUN_DIR/ci-meta.env"
+else
+    [[ -z "$PR_N" ]] && { echo "ERROR: no ci-meta.env in $RUN_DIR; a PR number is required" >&2; exit 1; }
+    REF_INSTALL="$WORK_DIR/ref-install"
+    PR_INSTALL="$WORK_DIR/pr-${PR_N}-install"
+    REF_SRC="$WORK_DIR/ref-src"
+    PR_SRC="$WORK_DIR/pr-${PR_N}-src"
+    REPORT_LABEL="pr${PR_N}"
+    TITLE="PR #$PR_N"
+fi
 
 REF_SUMMARY="$RUN_DIR/ref-wct-tests-failures.txt"
 PR_SUMMARY="$RUN_DIR/pr-wct-tests-failures.txt"
@@ -28,7 +41,7 @@ REF_SUMMARY_PDF="$RUN_DIR/02-ref-test-failures.pdf"
 PR_SUMMARY_PDF="$RUN_DIR/03-pr-test-failures.pdf"
 GEN_PDF="$RUN_DIR/04-gen-plots.pdf"
 SIGPROC_PDF="$RUN_DIR/05-sigproc-plots.pdf"
-REPORT="$RUN_DIR/report-pr${PR_N}.pdf"
+REPORT="$RUN_DIR/report-${REPORT_LABEL}.pdf"
 
 # gs is more lenient than pdfunite with matplotlib-generated PDFs.
 merge_pdfs() {
@@ -67,7 +80,7 @@ normalized_failures() {
         /^Failed tests:$/ { found=1; next }
         found && $0 != "None" && $0 != "" {
             sub(/[[:space:]]+\[[^]]+\][[:space:]]*$/, "")
-            gsub(/^.*\/wct-pr-testing\/(ref-src|pr-[0-9]+-src)\//, "")
+            gsub(/^.*\/wct-pr-testing\/(ref-src|pr-[0-9]+-src|target-[^\/]+-src)\//, "")
             print
         }
     ' "$summary" | sort -u
@@ -121,17 +134,17 @@ generate_review() {
     pr_failed="$(summary_value "$PR_SUMMARY" "Failed")"
 
     {
-        echo "PR #$PR_N review summary"
+        echo "$TITLE — review summary"
         echo "Generated: $(date -Is)"
         echo "Run directory: $RUN_DIR"
         echo ""
         echo "Test overview"
         echo "  - Reference failures: ${ref_failed:-unknown}"
-        echo "  - PR failures: ${pr_failed:-unknown}"
+        echo "  - Target failures: ${pr_failed:-unknown}"
         echo ""
-        write_list_or_none "PR-only failures" "$pr_only"
-        write_list_or_none "Failures common to ref and PR" "$common"
-        write_list_or_none "Ref-only failures" "$ref_only"
+        write_list_or_none "Target-only failures" "$pr_only"
+        write_list_or_none "Failures common to reference and target" "$common"
+        write_list_or_none "Reference-only failures" "$ref_only"
         echo "Validation artifacts"
         for required in \
             "$REF_TEST_LOG" "$PR_TEST_LOG" \
@@ -163,13 +176,13 @@ generate_review() {
         done
 
         if [[ -s "$pr_only" ]]; then
-            echo "PR-only test failures are present; inspect these as possible PR regressions." >> "$suggestions"
+            echo "Target-only test failures are present; inspect these as possible regressions in the target." >> "$suggestions"
         fi
         if [[ ! -s "$pr_only" && -s "$common" ]]; then
-            echo "PR failures match reference failures; these are more likely pre-existing or environment-related." >> "$suggestions"
+            echo "Target failures match reference failures; these are more likely pre-existing or environment-related." >> "$suggestions"
         fi
         if [[ -s "$ref_only" ]]; then
-            echo "Reference-only failures are present; compare environment/setup before attributing differences to the PR." >> "$suggestions"
+            echo "Reference-only failures are present; compare environment/setup before attributing differences to the target." >> "$suggestions"
         fi
 
         write_list_or_none "Suggestions and warnings" "$suggestions"
